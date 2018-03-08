@@ -1,5 +1,6 @@
 -- CREATE TABLES TO STORE GTFS DATA
 
+DROP TABLE IF EXISTS stops;
 DROP TABLE IF EXISTS shapes;
 DROP TABLE IF EXISTS routes;
 DROP TABLE IF EXISTS agencies;
@@ -36,3 +37,18 @@ CREATE TABLE shapes (
 );
 
 \COPY shapes FROM 'gtfs/shapes.txt' DELIMITER ',' CSV HEADER QUOTE '"';
+
+CREATE TABLE stops (
+    stop_id VARCHAR(30) PRIMARY KEY,
+    stop_name TEXT,
+    stop_desc TEXT,
+    stop_lat Decimal(9,6),
+    stop_lon Decimal(9,6),
+    zone_id TEXT,
+    stop_url TEXT,
+    location_type TEXT,
+    parent_station TEXT,
+    wheelchair_boarding BOOLEAN
+);
+
+\COPY stops FROM 'gtfs/stops.txt' DELIMITER ',' CSV HEADER QUOTE '"';
