@@ -9,3 +9,5 @@ CREATE TABLE agencies (
     agency_timezone VARCHAR(25),
     agency_lang VARCHAR(2)
 );
+
+\COPY agencies FROM 'gtfs/agency.txt' DELIMITER ',' CSV HEADER;
