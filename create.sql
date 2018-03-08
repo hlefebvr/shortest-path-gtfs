@@ -1,5 +1,6 @@
 -- CREATE TABLES TO STORE GTFS DATA
 
+DROP TABLE IF EXISTS routes;
 DROP TABLE IF EXISTS agencies;
 
 CREATE TABLE agencies (
@@ -12,16 +13,16 @@ CREATE TABLE agencies (
 
 \COPY agencies FROM 'gtfs/agency.txt' DELIMITER ',' CSV HEADER;
 
-DROP TABLE IF EXISTS routes;
-
 CREATE TABLE routes (
-    route_id VARCHAR(25) PRIMARY KEY,
-    agency_id VARCHAR(10) references agencies(agency_id),
-    route_short_time VARCHAR(2),
-    route_long_time VARCHAR(30),
+    route_id VARCHAR(40) PRIMARY KEY,
+    agency_id VARCHAR(10) REFERENCES agencies(agency_id),
+    route_short_time VARCHAR(10),
+    route_long_time TEXT,
     route_desc VARCHAR(2),
-    route_type int,
+    route_type INT,
     route_url TEXT,
     route_color VARCHAR(10),
     route_text_color VARCHAR(10)
 );
+
+\COPY routes FROM 'gtfs/routes.txt' DELIMITER ',' CSV HEADER QUOTE '"';
