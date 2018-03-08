@@ -1,5 +1,6 @@
 -- CREATE TABLES TO STORE GTFS DATA
 
+DROP TABLE IF EXISTS stoptimes;
 DROP TABLE IF EXISTS transfers;
 DROP TABLE IF EXISTS trips;
 DROP TABLE IF EXISTS stops;
@@ -80,3 +81,15 @@ CREATE TABLE transfers (
 
 \COPY transfers FROM 'gtfs/transfers.txt' DELIMITER ',' CSV HEADER QUOTE '"';
 
+CREATE TABLE stoptimes (
+    trip_id VARCHAR(40) REFERENCES trips(trip_id),
+    arrival_time VARCHAR(10),
+    departure_time VARCHAR(10),
+    stop_id VARCHAR(30) REFERENCES stops(stop_id),
+    stop_sequence INT,
+    stop_time_desc VARCHAR(10),
+    pickup_type INT,
+    drop_off_type INT
+);
+
+\COPY stoptimes FROM 'gtfs/stop_times.txt' DELIMITER ',' CSV HEADER QUOTE '"';
