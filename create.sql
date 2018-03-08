@@ -11,3 +11,17 @@ CREATE TABLE agencies (
 );
 
 \COPY agencies FROM 'gtfs/agency.txt' DELIMITER ',' CSV HEADER;
+
+DROP TABLE IF EXISTS routes;
+
+CREATE TABLE routes (
+    route_id VARCHAR(25) PRIMARY KEY,
+    agency_id VARCHAR(10) references agencies(agency_id),
+    route_short_time VARCHAR(2),
+    route_long_time VARCHAR(30),
+    route_desc VARCHAR(2),
+    route_type int,
+    route_url TEXT,
+    route_color VARCHAR(10),
+    route_text_color VARCHAR(10)
+);
