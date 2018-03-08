@@ -1,14 +1,11 @@
 -- CREATE TABLES TO STORE GTFS DATA
 
 DROP TABLE IF EXISTS agencies;
-DROP TABLE IF EXISTS routes;
-DROP TABLE IF EXISTS trips;
-DROP TABLE IF EXISTS calendars;
-DROP TABLE IF EXISTS calendar_dates;
-DROP TABLE IF EXISTS fare_rules;
-DROP TABLE IF EXISTS fare_attributes;
-DROP TABLE IF EXISTS stoptimes;
-DROP TABLE IF EXISTS stops;
-DROP TABLE IF EXISTS transfers;
-DROP TABLE IF EXISTS shapes;
 
+CREATE TABLE agencies (
+    agency_id VARCHAR(10) PRIMARY KEY,
+    agency_name TEXT,
+    agency_url TEXT,
+    agency_timezone VARCHAR(25),
+    agency_lang VARCHAR(2)
+);
