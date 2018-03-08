@@ -1,5 +1,6 @@
 -- CREATE TABLES TO STORE GTFS DATA
 
+DROP TABLE IF EXISTS shapes;
 DROP TABLE IF EXISTS routes;
 DROP TABLE IF EXISTS agencies;
 
@@ -26,3 +27,12 @@ CREATE TABLE routes (
 );
 
 \COPY routes FROM 'gtfs/routes.txt' DELIMITER ',' CSV HEADER QUOTE '"';
+
+CREATE TABLE shapes (
+    shape_id TEXT PRIMARY KEY,
+    shape_pt_lat TEXT,
+    shape_pt_lon TEXT,
+    shape_pt_sequence TEXT
+);
+
+\COPY shapes FROM 'gtfs/shapes.txt' DELIMITER ',' CSV HEADER QUOTE '"';
