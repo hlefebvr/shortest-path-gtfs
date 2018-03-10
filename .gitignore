@@ -1,3 +1,4 @@
-gtfs
+gtfs/*.txt
 *.pyc
-*.out
+python/csv/*.csv
+.vscode
