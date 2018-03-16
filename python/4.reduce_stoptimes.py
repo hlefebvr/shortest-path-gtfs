@@ -19,7 +19,7 @@ while True:
         try:
             # one-one correspondance
             curr_stoptime = stoptimes_reader.next();
-            curr_stop = stops_reader.next();
+            # curr_stop = stops_reader.next();
         except:
             break;
     elif curr_stop['stop_id'] > curr_stoptime['stop_id']:
