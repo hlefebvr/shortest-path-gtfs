@@ -15,14 +15,17 @@ STEP_LIST=[
     "Remove trips not linked to resulted routes",
     "Sort stoptimes by trip_id",
     "Sort trips by trip_id",
-    "Remove stoptimes not related to resulted trips"
+    "Remove stoptimes not related to resulted trips",
+    "Generate successors by trips",
+    "Sort resulted successor list by stop_id",
+    "Aggregate by stop_id"
 ];
 
 def launch():
     global folder_path_entry;
     global treeView;
     currdir = folder_path_entry.get();
-    tx.start(currdir, treeView, 12);
+    tx.start(currdir, treeView, 1);
 
 def get_gtfs_path():
     global folder_path_entry;
@@ -55,9 +58,9 @@ i = len(STEP_LIST) - 1;
 while (i>=0):
     treeView.insert("", 0, text=str(i+1), values=(STEP_LIST[i], ""));
     i = i - 1;
-treeView.pack(expand=1, fill=BOTH) # grid(row=1, column=0, columnspan=4, sticky=N+E+S+W);
+treeView.pack(expand=1, fill=BOTH);
 
-Button(window, text="Launch", command=launch).pack(side=LEFT, expand=TRUE, fill=BOTH) # .grid(row=4, column=0);
-Button(window, text="Quit").pack(side=RIGHT) # .grid(row=4, column=1);
+Button(window, text="Launch", command=launch).pack(side=LEFT, expand=TRUE, fill=BOTH);
+Button(window, text="Quit", command=window.destroy).pack(side=RIGHT);
 
 window.mainloop();

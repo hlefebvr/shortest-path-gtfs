@@ -1,6 +1,9 @@
 from csvsort import csvsort;
 from math import sin, cos, sqrt, atan2, radians;
 import csv;
+from datetime import datetime;
+import tkMessageBox;
+import time;
 
 def distance_to_center(lat, lon):
     R = 6373.0 # approximate radius of earth in km
@@ -12,7 +15,19 @@ def distance_to_center(lat, lon):
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
     return R * c;
 
+def diff_h(h1, h2):
+    def to_ms(str_hour):
+        hms = str_hour.split(':');
+        return int(hms[0]) * 3600 + int(hms[1]) * 60 + int(hms[2]);
+    def to_minutes(int_sec):
+        return int_sec / 60
+    ms1 = to_ms(h1);
+    ms2 = to_ms(h2);
+    delta = abs(ms1 - ms2);
+    return to_minutes(delta);
+
 def start(folder, treeView, start_at):
+    start_time = time.time();
     stepItemIds = treeView.get_children();
     def setStepStatus(step_n, status):
         itemId = stepItemIds[step_n - 1];
@@ -242,3 +257,91 @@ def start(folder, treeView, start_at):
         setStepStatus(11, 'OK');
     else:
         setStepStatus(11, 'OK');
+    
+    # Generate immediate successor list
+    if start_at <= 12:
+        setStepStatus(12, '...');
+
+        stoptimes_src_file = open('./tmp/11.stoptimes_reduced.csv', 'r');
+        successors_dest_file = open('./tmp/12.successors_redondant.csv', 'w');
+
+        stoptimes_reader = csv.DictReader(stoptimes_src_file);
+        successors_writer = csv.writer(successors_dest_file);
+
+        successors_writer.writerow( ("stop_id", "successor_id", "stop_name", "successor_name", "duration", "departure_time") );
+
+        curr_stoptimes = stoptimes_reader.next();
+
+        while True:
+            try:
+                second_stoptimes = stoptimes_reader.next();
+            except:
+                break;
+            if curr_stoptimes['trip_id'] == second_stoptimes['trip_id']:
+                delta_h = diff_h(curr_stoptimes['departure_time'], second_stoptimes['arrival_time']);
+                successors_writer.writerow( (curr_stoptimes['stop_id'], second_stoptimes['stop_id'], curr_stoptimes['stop_name'], second_stoptimes['stop_name'], delta_h, curr_stoptimes['departure_time']) );
+            curr_stoptimes = second_stoptimes;
+
+        stoptimes_src_file.close();
+        successors_dest_file.close();
+
+        setStepStatus(12, 'OK');
+    else:
+        setStepStatus(12, 'OK');
+
+    # Sort resulted successor list by stop_id
+    if start_at <= 13:
+        setStepStatus(13, '...');
+        csvsort('./tmp/12.successors_redondant.csv', [0], output_filename='./tmp/13.successors_redondant_sorted.csv', has_header=True);
+        setStepStatus(13, 'OK');
+    else:
+        setStepStatus(13, 'OK');
+    
+    # aggregate csv by stop_id
+    if start_at <= 14:
+        setStepStatus(14, '...');
+        
+        redondant_src_file = open('./tmp/13.successors_redondant_sorted.csv','r');
+        aggregated_output = open('./tmp/14.successors_list.csv', 'w');
+        redondant_reader = csv.DictReader(redondant_src_file);
+        aggregated_writer = csv.writer(aggregated_output);
+
+        def getCouple(stoptime):
+            return "("+curr_stoptimes['successor_id']+"/"+curr_stoptimes['successor_name']+"/"+curr_stoptimes['duration']+"/"+curr_stoptimes['departure_time']+")";
+        def initRow(stoptime):
+            return ( curr_stoptimes['stop_id'], curr_stoptimes['stop_name'] );
+
+        curr_stoptimes = redondant_reader.next();
+        curr_list = initRow(curr_stoptimes);
+        n_succ = 0;
+        global_n_edge = 0;
+        global_n_node = 0;
+        while True:
+            try:
+                second_stoptimes = redondant_reader.next();
+            except:
+                break;
+            if (curr_stoptimes['stop_id'] == second_stoptimes['stop_id']):
+                curr_list = curr_list + (getCouple(curr_stoptimes),);
+                n_succ = n_succ + 1;
+            else:
+                aggregated_writer.writerow( curr_list );
+                curr_list = initRow(second_stoptimes);
+                global_n_edge = global_n_edge + n_succ;
+                global_n_node = global_n_node + 1;
+                n_succ = 0;
+            curr_stoptimes = second_stoptimes;
+
+        print 'Total number of edges : ', global_n_edge
+        print 'Total number of nodes : ', global_n_node
+        print 'Average number of successors : ', global_n_edge / global_n_node
+
+        redondant_src_file.close();
+        aggregated_output.close();
+
+        setStepStatus(14, 'OK');
+    else:
+        setStepStatus(14, 'OK');
+    
+    execution_time = time.time() - start_time;
+    tkMessageBox.showinfo("Execution finished", "The execution has terminated in "+str(execution_time)+" seconds");
