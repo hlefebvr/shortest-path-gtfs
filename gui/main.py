@@ -18,7 +18,8 @@ STEP_LIST=[
     "Remove stoptimes not related to resulted trips",
     "Generate successors by trips",
     "Sort resulted successor list by stop_id",
-    "Aggregate by stop_id"
+    "Aggregate by stop_id",
+    "Sort stops in time order for each trip"
 ];
 
 def launch():
