@@ -1,6 +1,6 @@
 from csvsort import csvsort;
 from math import sin, cos, sqrt, atan2, radians;
-import csv;
+import csv, operator, sys;
 from datetime import datetime;
 import tkMessageBox;
 import time;
@@ -342,6 +342,34 @@ def start(folder, treeView, start_at):
         setStepStatus(14, 'OK');
     else:
         setStepStatus(14, 'OK');
+    
+    # Sort stops in time order for each trip
+    if start_at <= 15:
+        setStepStatus(15, '...');
+
+        stoptimes_file = open('./tmp/11.stoptimes_reduced.csv', 'r');
+        stoporder_file = open('./tmp/15.stoporder_bytrip.csv', 'w');
+
+        stoptimes_reader = csv.DictReader(stoptimes_file);
+        trip_sort_writer = csv.writer(stoporder_file);
+
+        trip_dict = {}
+        for row in stoptimes_reader:
+            trip_id = row['trip_id']
+            if trip_id not in trip_dict.keys():
+                trip_sort_writer.writerow(trip_dict.keys())
+                trip_sort_writer.writerow(trip_dict.values())
+                trip_dict = {}
+                trip_dict[trip_id] = [row['stop_id']]
+            else:
+                trip_dict[trip_id].append(row['stop_id'])
+
+        trip_sort_writer.writerows(trip_dict)
+        stoporder_file.close()
+        stoptimes_file.close()
+        setStepStatus(15, 'OK');
+    else:
+        setStepStatus(15, 'OK');
     
     execution_time = time.time() - start_time;
     tkMessageBox.showinfo("Execution finished", "The execution has terminated in "+str(execution_time)+" seconds");
