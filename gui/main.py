@@ -26,7 +26,8 @@ def launch():
     global folder_path_entry;
     global treeView;
     currdir = folder_path_entry.get();
-    tx.start(currdir, treeView, 1);
+    start_at = int(selected_step.get());
+    tx.start(currdir, treeView, start_at);
 
 def get_gtfs_path():
     global folder_path_entry;
@@ -51,6 +52,17 @@ folder_path_entry.pack(side=LEFT, expand=TRUE, fill=BOTH);
 Button(select_folder_frame, text="Select folder", command=get_gtfs_path).pack(side=RIGHT);
 
 select_folder_frame.pack(side=TOP, fill=BOTH)
+
+select_frame = Frame(window)
+
+Label(select_frame, text="Start execution at step number ").pack(side=LEFT);
+selected_step = StringVar();
+values = list(range(1,len(STEP_LIST)+1));
+selected_step.set(1);
+listbox = ttk.Combobox(select_frame, textvariable=selected_step, values=values);
+listbox.pack(side=RIGHT);
+
+select_frame.pack()
 
 treeView = ttk.Treeview(window, columns=('description', 'status'));
 treeView.column("#0", minwidth=0, width=40, stretch=NO);
