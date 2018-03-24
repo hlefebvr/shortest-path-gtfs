@@ -31,9 +31,12 @@ while True:
             dist = int(fields[2]);
         except:
             continue;
-        if dist != 0 and (dist, stop_id) not in successors_unique:
+        if (dist, stop_id) not in successors_unique:
             successors_unique.append((dist, stop_id));
-    G[line[0]] = successors_unique;
+    try:
+        G[line[0]] = G[line[0]] + successors_unique;
+    except:
+        G[line[0]] = successors_unique;
 
 file_reader.close();
 print G
