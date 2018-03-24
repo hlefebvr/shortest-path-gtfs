@@ -14,7 +14,7 @@ end_node = "StopPoint:OIF59657"; # Barbès
 #    "D": [],
 #};
 
-G = eval ( open('./dict.txt', 'r').read() );
+G = eval ( open('../gui/tmp/14.successors_list.csv', 'r').read() );
 
 def get_successors_list(node):
     try:
