@@ -23,6 +23,19 @@ def get_successors_list(node):
         succ_list = [];
     return succ_list;
 
+def get_stop_names(ids):
+    names = ids;
+    stops_file = open('../../gui/tmp/2.stops_sorted.csv', 'r');
+    stops_reader = csv.DictReader(stops_file);
+
+    for stop in stops_reader:
+        for id in names:
+            index = names.index(id);
+            if stop['stop_id'] == id:
+                names[index] = stop['stop_name'];
+
+    return names;
+
 next_nodes = [ (0, starting_node) ];
 dist = {};
 dist[starting_node] = 0;
@@ -52,4 +65,5 @@ while x != starting_node:
 result.append(starting_node);
 result.reverse();
 
-print(result)
+print(result);
+print(get_stop_names(result));
