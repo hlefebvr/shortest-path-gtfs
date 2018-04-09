@@ -1,7 +1,0 @@
-fichiers : 
-
-trips : (liste d'arrêts ordonées / pas de redondance) // reconstituer une route ?
-
-stops : (listes des successeurs de chaque stops | time | trips)
-
-routes: ?

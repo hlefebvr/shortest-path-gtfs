@@ -1,4 +1,5 @@
-gtfs/*.txt
+*.txt
 *.pyc
-python/csv/*.csv
+*.csv
+*.json
 .vscode
