@@ -1,9 +1,9 @@
 #!/usr/local/bin/python
 # -*- coding: utf-8 -*-
 from csvsort import csvsort;
-from math import sin, cos, sqrt, atan2, radians;
 import csv;
 import os;
+from util.distances import distance_to_center;
 
 BASE_PATH = os.path.dirname(os.path.realpath(__file__)) + '/';
 
@@ -52,16 +52,6 @@ def join_csv_on(file1, keys1, file2, keys2, output_file, sort_file1 = True, sort
     os.remove(BASE_PATH + './tmp/file1.sorted');
     os.remove(BASE_PATH + './tmp/file2.sorted');
 
-def distance_to_center(lat, lon):
-    R = 6373.0 # approximate radius of earth in km
-    ref_lat = radians(48.8610)
-    ref_lon = radians(2.3439)
-    dlon = lon - ref_lon
-    dlat = lat - ref_lat
-    a = sin(dlat / 2)**2 + cos(ref_lat) * cos(lat) * sin(dlon / 2)**2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
-    return R * c;
-
 def reduce_stops(stopsfile, outut_file):
     file_reader = open(BASE_PATH + stopsfile, 'r');
     file_csv_reader = csv.reader(file_reader);
@@ -73,8 +63,8 @@ def reduce_stops(stopsfile, outut_file):
     output_csv_writer.writerow(header);
 
     for row in file_csv_reader:
-        stop_lat = radians(float(row[3]));
-        stop_lon = radians(float(row[4]));
+        stop_lat = row[3];
+        stop_lon = row[4];
         dist = distance_to_center( stop_lat, stop_lon );
         if dist <= 5.63:
             output_csv_writer.writerow( row );
