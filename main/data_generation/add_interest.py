@@ -19,7 +19,7 @@ points = [
     ['PI: Place Vendôme', 48.867629, 2.329398]
 ];
 human_speed_in_km_per_hour = 5;
-arrival_radius_in_km = 0.2;
+arrival_radius_in_km = 0.5;
 graph = eval ( open('./output/graph.json', 'r').read() );
 id2name = eval ( open('./output/id2name.json', 'r').read() );
 
