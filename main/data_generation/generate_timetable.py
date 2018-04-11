@@ -77,7 +77,6 @@ reduce_stops('../../gtfs/stops.txt', './tmp/stops_heart.csv');
 
 print "Merging stops and stoptimes..."
 join_csv_on('./tmp/stops_heart.csv', [0], '../../gtfs/stop_times.txt', [3], './tmp/timetable.csv');
-os.remove(BASE_PATH + './tmp/stops_heart.csv');
 
 print "Merging result with trips..."
 join_csv_on('../../gtfs/trips.txt', [2], './tmp/timetable.csv', [10], './tmp/timetable2.csv');

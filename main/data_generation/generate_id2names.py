@@ -26,7 +26,7 @@ def str_route_type(route_type):
         return 'Mode inconnu';
 
 for stop in timetable_csv_reader:
-    id2name[stop['stop_id']] = [stop['stop_name'], str_route_type(stop['route_type']), stop['route_short_name']];
+    id2name[stop['stop_id']] = [stop['stop_name'], str_route_type(stop['route_type']), stop['route_short_name'], stop['route_color']];
 
 output_writer.write( json.dumps(id2name) );
 
