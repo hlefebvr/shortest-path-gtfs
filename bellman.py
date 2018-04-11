@@ -13,14 +13,14 @@ def bellman_ford(graph, source):
     # Step 2: Relax the edges
     for _ in range(len(graph) - 1):
         for node in graph:
-            for neighbour, dist in graph[node]:
+            for dist, neighbour in graph[node]:
                 # If the distance between the node and the neighbour is lower than the current, store it
                 if distance[neighbour] > distance[node] + dist:
                     distance[neighbour], predecessor[neighbour] = distance[node] + dist, node
 
      # Step 3: Check for negative weight cycles
     for node in graph:
-        for neighbour, dist in graph[node]:
+        for dist, neighbour in graph[node]:
             assert distance[neighbour] <= distance[node] + dist, "Negative weight cycle."
 
     return distance,predecessor
@@ -38,11 +38,11 @@ def shortest_way(predecessor, source, origin):
 
 # test example
 graph = {
-    'a':[['b', 1], ['c', 4]],
-    'b':[['c', 3], ['d', 2], ['e', 2]],
+    'a':[[1, 'b'], [4, 'c']],
+    'b':[[3, 'c'], [2, 'd'], [2, 'e']],
     'c':[],
-    'd':[['b', 1], ['c', 5]],
-    'e':[['d', 3]]
+    'd':[[1, 'b'], [5, 'c']],
+    'e':[[3, 'd']]
 }
 distance, predecessor = bellman_ford(graph, source='a')
 print distance
