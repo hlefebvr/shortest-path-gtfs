@@ -2,6 +2,7 @@
 
 ## Algorithms
 
-- Dijkstra OK
-- Bellman TODO
-- Yen TODO
+- Dijkstra **OK**
+- Bellman **OK**
+- Bellman with stop times _TODO_
+- Yen _TODO_
