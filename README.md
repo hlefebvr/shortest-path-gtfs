@@ -1,4 +1,4 @@
-# UTC-TX : Exploitation de données pour algorithmes de graphes
+# Graph algorithms applied to GTFS data
 
 ## Data generation
 
