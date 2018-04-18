@@ -19,4 +19,4 @@
 ## Graph vizualisation
 
 - Using pyplot to draw graph **OK** (for subway points only, doable but too long for bus stops)
-- Drawing optimal solution to shortest paths _TODO_
+- Drawing optimal solution to shortest path problem _TODO_
