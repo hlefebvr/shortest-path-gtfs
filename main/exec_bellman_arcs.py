@@ -6,7 +6,8 @@ import os
 
 BASE_PATH = os.path.dirname(os.path.realpath(__file__)) + '/'
 
-arcs_file = BASE_PATH + './data_generation/output/arcs.csv'
+# arcs_file = BASE_PATH + './data_generation/output/arcs.csv'
+arcs_file = BASE_PATH + './result.csv'
 tmp_file = BASE_PATH + './tmp.csv'
 
 
@@ -117,18 +118,10 @@ for k in range(n - 1):
         v = row['v']
         w = int(row['travel_time'])
         h = row['departure_time']
-        delay = 0
 
-        _, h_opt, _ = p.get(v)
-        if h_opt != 'NA':
-            if h == 'NA':
-                h = h_opt
-            else:
-                delay = int(Time(h) - Time(h_opt))
-
-        if(d.get(v) > d.get(u) + w + delay):
+        if(d.get(v) > d.get(u)):
             has_changed = True
-            d.set(v, d.get(u) + w + delay)
+            d.set(v, d.get(u) + w)
             p.set(v, (u, h, w))
     src_file.close()
     if(has_changed == False):
