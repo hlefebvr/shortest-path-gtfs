@@ -7,6 +7,19 @@ import os
 BASE_PATH = os.path.dirname(os.path.realpath(__file__)) + '/'
 
 
+def id(stop_id, time):
+    return str(stop_id) + '@' + str(time)
+
+
+def print_id(stop_id):
+    def bind_zero(n):
+        return str(n) if n > 9 else '0' + str(n)
+    node, time = stop_id.split('@')
+    time = int(time)
+    str_time = bind_zero(int(time / 60)) + ':' + bind_zero(time % 60)
+    print(str_time, node)
+
+
 class DataStore:
     def __init__(self, default_value):
         self.default_value = default_value
@@ -28,25 +41,30 @@ class DataStore:
 
 start = "StopPoint:OIF59587"  # Républiques
 end = "StopPoint:OIF59659"  # Rivoli louvre
-start_time = 13 * 60  # 13h
+
+# start = "StopPoint:OIF59657"  # Barbés
+# end = "StopPoint:OIF59421"  # Place de Clichy
+
+start_time = 15 * 60  # 15h
+
+start_node = id(start, start_time)
 
 
-def id(stop_id, time):
-    return str(stop_id) + '@' + str(time)
+src_file = open(BASE_PATH + './time-expanded/meta_data.txt', 'r')
+meta = DictReader(src_file).next()
 
+n = int(meta['n'])
 
 # Init values
 d = DataStore(float('inf'))  # sets all the distances to +inf
 d.set(id(start, start_time), 0)
-p = DataStore((None, 'NA', None))  # sets all the predecessors to None
-
-n = 324  # hard coded for now
+p = DataStore(None)  # sets all the predecessors to None
 
 print "Executing Bellman with ", n, "nodes."
 for k in range(n - 1):
-    print(str(int(k / n * 100)) + '%')
+    print(k)
     has_changed = False
-    src_file = open(BASE_PATH + './time-expanded/time_expanded.txt', 'r')
+    src_file = open(BASE_PATH + './time-expanded/sub_time_expanded.txt', 'r')
     arcIterator = DictReader(src_file)
     arcIterator.next()
     for row in arcIterator:
@@ -63,4 +81,24 @@ for k in range(n - 1):
         print 'No changes were made during last execution... (', k, ')'
         break
 
-print p.get_dict()
+print('Searching for minimal path...')
+min_time = float('inf')
+end_node = None
+for node in d.get_dict():
+    curr_time = int(d.get_dict()[node])
+    curr_id, _ = node.split('@')
+    if curr_id == end:
+        if curr_time < min_time:
+            min_time = curr_time
+            end_node = node
+
+print('Temps : ', d.get(end_node))
+
+print('Searching path....')
+x = end_node
+i = 0
+while x != start_node and i <= 20:
+    print_id(x)
+    x = p.get(x)
+    i += 1
+print_id(start_node)
