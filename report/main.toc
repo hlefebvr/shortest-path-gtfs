@@ -6,9 +6,9 @@
 \contentsline {subsection}{\numberline {2.1}Repr\IeC {\'e}sentation}{2}
 \contentsline {subsection}{\numberline {2.2}Algorithme de Dijkstra}{2}
 \contentsline {subsection}{\numberline {2.3}Algorithme de Bellman-Ford}{2}
-\contentsline {section}{\numberline {3}Mod\IeC {\`e}les avec d\IeC {\'e}pendances temporelles}{2}
-\contentsline {subsection}{\numberline {3.1}Repr\IeC {\'e}sentation}{2}
-\contentsline {subsubsection}{\numberline {3.1.1}\textit {Condensed Model}}{2}
+\contentsline {section}{\numberline {3}Mod\IeC {\`e}les avec d\IeC {\'e}pendances temporelles}{3}
+\contentsline {subsection}{\numberline {3.1}Repr\IeC {\'e}sentation}{3}
+\contentsline {subsubsection}{\numberline {3.1.1}\textit {Condensed Model}}{3}
 \contentsline {subsubsection}{\numberline {3.1.2}\textit {Time-expanded Model}}{3}
 \contentsline {subsection}{\numberline {3.2}Algorithme de Bellman-Ford}{3}
 \contentsline {subsubsection}{\numberline {3.2.1}Bellman-Ford r\IeC {\'e}parti}{3}

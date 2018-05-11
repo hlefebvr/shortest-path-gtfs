@@ -216,8 +216,8 @@ for row in stoptimes:
                 'from': stop1['stop_id'],
                 'to': stop2['stop_id'],
                 'departure': minutes(stop1['departure_time']),
-                'arrival': minutes(stop2['arrival_time']),
-                'travel_time': minutes(stop2['arrival_time']) - minutes(stop1['departure_time']),
+                'arrival': minutes(stop2['departure_time']),
+                'travel_time': minutes(stop2['departure_time']) - minutes(stop1['departure_time']),
                 'route_type': stop1['route_type'],
                 'route': stop1['route_short_name']
             }
@@ -251,17 +251,20 @@ for tr in transfers:
     if stop:
         break
     while tr['from_stop_id'] == arc['from']:
-        travel_time = int(int(tr['min_transfer_time']) / 60)
-        arc = {
-            'from': arc['from'],
-            'to': tr['to_stop_id'],
-            'departure': int(arc['departure']),
-            'arrival': int(arc['departure']) + travel_time,
-            'travel_time': travel_time,
-            'route_type': '-1',  # signifiant "transfer"
-            'route': '-1'
-        }
-        arcs_transfers.writerow(arc)
+        try:
+            travel_time = int(int(tr['min_transfer_time']) / 60)
+            arc = {
+                'from': tr['from_stop_id'],
+                'to': tr['to_stop_id'],
+                'departure': int(arc['arrival']),
+                'arrival': int(arc['arrival']) + travel_time,
+                'travel_time': travel_time,
+                'route_type': '-1',  # signifiant "transfer"
+                'route': '-1'
+            }
+            arcs_transfers.writerow(arc)
+        except:
+            print('There was one error...')
         try:
             arc = arcs_transport.next()
         except:
@@ -270,8 +273,8 @@ for tr in transfers:
     if stop:
         break
 transfers.close()
-arcs_transfers.close()
 arcs_transport.close()
+arcs_transfers.close()
 exec_time.out()
 
 print('Concaténation des arcs...')

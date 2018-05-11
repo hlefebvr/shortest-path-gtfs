@@ -39,11 +39,14 @@ class DataStore:
         return self.dict
 
 
-start = "StopPoint:OIF59587"  # Républiques
-end = "StopPoint:OIF59659"  # Rivoli louvre
+start = "StopPoint:OIF59634"  # République
+end = "StopPoint:OIF59591"  # Louvres
 
 # start = "StopPoint:OIF59657"  # Barbés
 # end = "StopPoint:OIF59421"  # Place de Clichy
+
+# start = "StopPoint:OIF59325"  # Gambetta
+# end = "StopPoint:OIF59219"  # Pereire
 
 start_time = 15 * 60  # 15h
 
