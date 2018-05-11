@@ -7,14 +7,15 @@
 - Adding transfers to successors/predecessors list **OK**
 - Adding interest points near stops (valuations = times by walk) **OK**
 - Building stop_id stop_name correspondance **OK**
-- Building compressed storage of stoptimes _TODO_
+- Building time expanded model from GTFS __TODO__
 
 ## Algorithms
 
 - Dijkstra **OK**
 - Bellman **OK**
-- Bellman with stop times _TODO_
-- Yen _TODO_
+- Bellman with time expanded model _TODO_
+- Yen with time expanded model _TODO_
+- Dijkstra with time expanded model __TODO__
 
 ## Graph vizualisation
 
