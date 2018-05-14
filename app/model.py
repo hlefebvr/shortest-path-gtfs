@@ -31,6 +31,25 @@ class Memo:
         return self._is_ready
 
 
+class DataStore:
+    def __init__(self, default_value):
+        self.default_value = default_value
+        self.dict = {}
+
+    def get(self, stop_id):
+        try:
+            return self.dict[stop_id]
+        except:
+            return self.default_value
+
+    def set(self, stop_id, value):
+        if (value != self.default_value):
+            self.dict[stop_id] = value
+
+    def get_dict(self):
+        return self.dict
+
+
 def minutes(str):  # hh:mm --> mm
     split = str.split(':')
     return int(split[0]) * 60 + int(split[1])
@@ -202,7 +221,7 @@ class Model:
         self.remove_csv('file1.sorted')
         self.remove_csv('file2.sorted')
 
-    def get_stops_xy(self, filename='stops-metro-train-bus'):
+    def get_stops_xy(self, filename='stops-metro-train-bus', stop_id=None):
         def getCartesian(lat, lon):
             lat = radians(float(lat))
             lon = radians(float(lon))
@@ -213,9 +232,10 @@ class Model:
         stops = self.open_csv(filename)
         x, y = [], []
         for stop in stops:
-            _x, _y = getCartesian(stop['lat'], stop['lon'])
-            x += [_x]
-            y += [_y]
+            if (stop_id == None) or (stop_id == stop['id']):
+                _x, _y = getCartesian(stop['lat'], stop['lon'])
+                x += [_x]
+                y += [_y]
         stops.close()
         return x, y
 
@@ -456,8 +476,50 @@ class Model:
             outputs[combi].close()
         print('Stops have been generated')
 
-    def bellman(self, route_types, start_node, end_node, start_time=None):
+    def bellman(self, mode_prefix, start_node, end_node, start_time):
+        def id(stop_id, time): return str(stop_id) + '@' + str(time)
         print('Bellman-Ford')
+        start_id = id(start_node, minutes(start_time))
+        # TODO if start_time == 'None' ---> find closest departure time
+        if start_time == 'None':
+            filename = 'condensed' + mode_prefix
+        else:
+            filename = 'time_expanded' + mode_prefix
 
-    def dijkstra(self, route_types, start_node, end_node):
+        n = 300  # hard coded for now
+
+        # Init values
+        d = DataStore(float('inf'))  # sets all the distances to +inf
+        d.set(start_id, 0)
+        p = DataStore(None)  # sets all the predecessors to None
+
+        print("Executing Bellman with " + str(n) +
+              " nodes from " + start_id + " to " + end_node)
+        for k in range(n - 1):
+            print(k)
+            has_changed = False
+            arcIterator = self.open_csv(filename)
+            for row in arcIterator:
+                try:
+                    u = id(row['from'], row['departure'])
+                    v = id(row['to'], row['arrival'])
+                    w = int(row['travel_time'])
+                except:
+                    print('There was an error on ' + row['from'])
+                    continue
+
+                if(d.get(v) > d.get(u) + w):
+                    has_changed = True
+                    d.set(v, d.get(u) + w)
+                    p.set(v, u)
+            arcIterator.close()
+            if(has_changed == False):
+                print 'No changes were made during last execution... (', k, ')'
+                break
+        print p.get_dict()
+
+    def dijkstra(self, mode_prefix, start_node, end_node):
         print('Dijkstra')
+
+    def get_stops_iterator(self, filename):
+        return self.open_csv(filename)

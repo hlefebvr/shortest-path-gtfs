@@ -27,8 +27,8 @@ class View:
         for i in range(n_col):
             self.table.insertColumn(i)
         self.table.setHorizontalHeaderLabels(columns)
-        rowPosition = self.table.rowCount()
-        '''self.table.insertRow(rowPosition)
+        '''rowPosition = self.table.rowCount()
+        self.table.insertRow(rowPosition)
         for i in range(n_col):
             self.table.setItem(rowPosition, i, QTableWidgetItem("text"))'''
         self.metro = QCheckBox("Metro")
@@ -42,12 +42,10 @@ class View:
         self.time = QComboBox()
         t = ['None']
         for i in range(24):
-            for j in range(60):
+            for j in range(0, 60, 5):
                 def bind_zero(n): return str(n) if n > 9 else '0' + str(n)
                 t.append(bind_zero(i) + ':' + bind_zero(j))
         self.time.addItems(t)
-        self.start.addItems(["Arc de Triomphe", "Tour Effeil"])
-        self.end.addItems(["Arc de Triomphe", "Tour Effeil"])
         # add bar : n, m, iteration, worst case iteration, etat (en cours, erreur, aucun)
 
         vertical_frame = QWidget()
@@ -103,24 +101,34 @@ class View:
 
         for cbox in [self.bus, self.metro, self.train]:
             QObject.connect(cbox, SIGNAL(
-                "stateChanged(int)"), self.refresh_plot)
+                "stateChanged(int)"), self.refresh)
+        for cbox in [self.start, self.end]:
+            QObject.connect(cbox, SIGNAL(
+                "currentIndexChanged(int)"), self.on_stop_selected)
+
+        QObject.connect(self.bellman, SIGNAL("clicked()"), self.ask_bellman)
 
         self.main_window.show()
 
-    def refresh_plot(self):
-        filename = 'stops'
+    def get_modes_prefix(self):
+        filename = ''
         if self.metro.checkState() == 2:
             filename += '-metro'
         if self.train.checkState() == 2:
             filename += '-train'
         if self.bus.checkState() == 2:
             filename += '-bus'
+        return filename
+
+    def refresh(self):
+        filename = 'stops' + self.get_modes_prefix()
         if filename == 'stops':
             plt.clf()
             plt.axis('off')
             self.canvas.draw()
             return False
         self.controller.ask_plot_xy(filename)
+        self.controller.refresh_stops(filename)
 
     def _dialog(self, type, txt, complementaryText):
         msg = QMessageBox()
@@ -199,3 +207,27 @@ class View:
 
         QObject.connect(validate, SIGNAL("clicked()"), on_validate)
         QObject.connect(refuse, SIGNAL("clicked()"), on_cancel)
+
+    def fill_stops(self, stops):
+        self.start.clear()
+        self.end.clear()
+        for stop in stops:
+            self.start.addItem(stop['name'], userData=stop['id'])
+            self.end.addItem(stop['name'], userData=stop['id'])
+
+    def on_stop_selected(self):
+        start_id = str(self.start.itemData(
+            self.start.currentIndex()).toString())
+        end_id = str(self.end.itemData(
+            self.end.currentIndex()).toString())
+        # plot something ?
+        # print(start_id, end_id)
+
+    def ask_bellman(self):
+        start_id = str(self.start.itemData(
+            self.start.currentIndex()).toString())
+        end_id = str(self.end.itemData(
+            self.end.currentIndex()).toString())
+        mode_prefix = self.get_modes_prefix()
+        start_time = str(self.time.itemText(self.time.currentIndex()))
+        self.controller.bellman(mode_prefix, start_id, end_id, start_time)

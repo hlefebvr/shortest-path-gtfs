@@ -25,8 +25,9 @@ class App:
             r = self.model.get_conf('RADIUS')
             self.view.ask_reduce_stops(lat, lon, r)
 
-        x, y = self.model.get_stops_xy('stops-metro-train-bus')
-        self.view.plot_xy(x, y)
+        default_config = 'stops-metro-train-bus'
+        self.ask_plot_xy(default_config)
+        self.refresh_stops(default_config)
 
     def build(self, lat, lon, r):
         if r > 0:
@@ -47,3 +48,10 @@ class App:
     def ask_plot_xy(self, filename):
         x, y = self.model.get_stops_xy(filename)
         self.view.plot_xy(x, y)
+
+    def refresh_stops(self, filename):
+        stops = self.model.get_stops_iterator(filename)
+        self.view.fill_stops(stops)
+
+    def bellman(self, mode_prefix, start_node, end_node, start_time='None'):
+        self.model.bellman(mode_prefix, start_node, end_node, start_time)
