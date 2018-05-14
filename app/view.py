@@ -9,6 +9,14 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 import random
 
 
+def route_type_str(i):
+    return ['metro', 'train', 'bus'][int(i) - 1]
+
+
+def bind_zero(n):
+    return str(n) if n > 9 else '0' + str(n)
+
+
 class View:
     def __init__(self,
                  controller,
@@ -22,15 +30,6 @@ class View:
         self.dijkstra = QPushButton("Algorithme de Dijkstra")
         self.bellman = QPushButton("Algorithme de Bellman")
         self.table = QTableWidget()
-        columns = ['Heure', "Nom de l\'arret", "Ligne", "Mode"]
-        n_col = len(columns)
-        for i in range(n_col):
-            self.table.insertColumn(i)
-        self.table.setHorizontalHeaderLabels(columns)
-        '''rowPosition = self.table.rowCount()
-        self.table.insertRow(rowPosition)
-        for i in range(n_col):
-            self.table.setItem(rowPosition, i, QTableWidgetItem("text"))'''
         self.metro = QCheckBox("Metro")
         self.bus = QCheckBox("Bus")
         self.train = QCheckBox("Train")
@@ -40,12 +39,23 @@ class View:
         self.start = QComboBox()
         self.end = QComboBox()
         self.time = QComboBox()
+        self.last_plot = None
         t = ['None']
-        for i in range(24):
+        for i in range(7, 22):
             for j in range(0, 60, 5):
                 def bind_zero(n): return str(n) if n > 9 else '0' + str(n)
                 t.append(bind_zero(i) + ':' + bind_zero(j))
         self.time.addItems(t)
+
+        columns = ['Heure', "Nom de l\'arret", "Ligne", "Mode"]
+        n_col = len(columns)
+        for i in range(n_col):
+            self.table.insertColumn(i)
+        self.table.setHorizontalHeaderLabels(columns)
+        header = self.table.horizontalHeader()
+
+        for i in range(len(header)):
+            header.setResizeMode(i, QHeaderView.ResizeToContents)
         # add bar : n, m, iteration, worst case iteration, etat (en cours, erreur, aucun)
 
         vertical_frame = QWidget()
@@ -61,7 +71,6 @@ class View:
 
         self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)
-        plt.plot()
         plt.axis('off')
         plt.text(0, 0, "...")
 
@@ -85,7 +94,7 @@ class View:
         menu_layout.addWidget(self.dijkstra)
         menu_layout.addWidget(self.bellman)
         menu_layout.addStretch(100)
-        vertical_layout.addWidget(self.table, 25)
+        vertical_layout.addWidget(self.table, 40)
 
         route_types_select.setLayout(route_types_layout)
         stops_select.setLayout(stops_layout)
@@ -220,8 +229,7 @@ class View:
             self.start.currentIndex()).toString())
         end_id = str(self.end.itemData(
             self.end.currentIndex()).toString())
-        # plot something ?
-        # print(start_id, end_id)
+        self.controller.highlight_stops([start_id, end_id])
 
     def ask_bellman(self):
         start_id = str(self.start.itemData(
@@ -231,3 +239,39 @@ class View:
         mode_prefix = self.get_modes_prefix()
         start_time = str(self.time.itemText(self.time.currentIndex()))
         self.controller.bellman(mode_prefix, start_id, end_id, start_time)
+
+    def show_result(self, path):
+        for i in reversed(range(self.table.rowCount())):
+            self.table.removeRow(i)
+        x, y = [], []
+        for i in range(len(path)):
+            self.table.insertRow(i)
+            time, name, route, route_type, cx, cy, = path[i]
+            if time != '':
+                time = int(time)
+                h = int(time / 60)
+                m = time % 60
+                time = bind_zero(h) + ':' + bind_zero(m)
+            self.table.setItem(i, 0, QTableWidgetItem(time))
+            self.table.setItem(i, 1, QTableWidgetItem(name))
+            self.table.setItem(i, 2, QTableWidgetItem(route))
+            self.table.setItem(i, 3, QTableWidgetItem(
+                route_type_str(route_type)))
+            x.append(cx)
+            y.append(cy)
+        print x, y
+        self.draw_path(x, y)
+
+    def draw_path(self, x, y, dots=False):
+        style = 'r-'
+        markersize = 1
+        if dots:
+            style = 'ro'
+            markersize = 3
+        try:
+            self.last_plot[0].remove()
+        except:
+            pass
+        self.last_plot = plt.plot(x, y, style, markersize=markersize)
+        self.canvas.draw()
+        self.canvas.draw_idle()

@@ -38,10 +38,10 @@ class App:
         else:
             self.model.remove_csv('stops-reduced')
         self.model.build_time_expanded_model()
-        # self.model.build_condensed_model_from_time_expanded_model()
-        # self.model.build_alpha_beta_from_condensed_model()
+        self.model.build_condensed_model_from_time_expanded_model()
+        self.model.build_alpha_beta_from_condensed_model()
         self.model.build_cuboid_from_model('time_expanded')
-        # self.model.build_cuboid_from_model('condensed')
+        self.model.build_cuboid_from_model('condensed')
         # self.model.build_cuboid_from_model('alphabeta')
         self.model.build_stops()
 
@@ -55,3 +55,10 @@ class App:
 
     def bellman(self, mode_prefix, start_node, end_node, start_time='None'):
         self.model.bellman(mode_prefix, start_node, end_node, start_time)
+
+    def show_result(self, results):
+        self.view.show_result(results)
+
+    def highlight_stops(self, stops):
+        x, y = self.model.get_stops_xy(stop_ids=stops)
+        self.view.draw_path(x, y, True)
