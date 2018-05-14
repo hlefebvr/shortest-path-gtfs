@@ -221,8 +221,9 @@ class View:
         self.start.clear()
         self.end.clear()
         for stop in stops:
-            self.start.addItem(stop['name'], userData=stop['id'])
-            self.end.addItem(stop['name'], userData=stop['id'])
+            self.start.addItem(stop['name'].decode(
+                'utf-8'), userData=stop['id'])
+            self.end.addItem(stop['name'].decode('utf-8'), userData=stop['id'])
 
     def on_stop_selected(self):
         start_id = str(self.start.itemData(
@@ -253,7 +254,7 @@ class View:
                 m = time % 60
                 time = bind_zero(h) + ':' + bind_zero(m)
             self.table.setItem(i, 0, QTableWidgetItem(time))
-            self.table.setItem(i, 1, QTableWidgetItem(name))
+            self.table.setItem(i, 1, QTableWidgetItem(name.decode('utf-8')))
             self.table.setItem(i, 2, QTableWidgetItem(route))
             self.table.setItem(i, 3, QTableWidgetItem(
                 route_type_str(route_type)))
