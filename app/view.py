@@ -19,13 +19,36 @@ class View:
         self.main_window = QMainWindow(None)
         self.main_window.setWindowTitle(
             "TX : Exploitation de donnees pour algorithmes de graphes multimodaux")
-        self.dijkstra_condensed = QPushButton(
-            "Algorithme de Dijkstra (Condensed Model)")
-        self.bellman_condensed = QPushButton(
-            "Algorithme de Bellman (Condensed Model)")
-        self.bellman_expanded = QPushButton(
-            "Algorithme de Bellman (Time Expanded Model)")
-        self.table = QTableView()
+        self.dijkstra = QPushButton("Algorithme de Dijkstra")
+        self.bellman = QPushButton("Algorithme de Bellman")
+        self.table = QTableWidget()
+        columns = ['Heure', "Nom de l\'arret", "Ligne", "Mode"]
+        n_col = len(columns)
+        for i in range(n_col):
+            self.table.insertColumn(i)
+        self.table.setHorizontalHeaderLabels(columns)
+        rowPosition = self.table.rowCount()
+        '''self.table.insertRow(rowPosition)
+        for i in range(n_col):
+            self.table.setItem(rowPosition, i, QTableWidgetItem("text"))'''
+        self.metro = QCheckBox("Metro")
+        self.bus = QCheckBox("Bus")
+        self.train = QCheckBox("Train")
+        self.metro.setCheckState(Qt.Checked)
+        self.train.setCheckState(Qt.Checked)
+        self.bus.setCheckState(Qt.Checked)
+        self.start = QComboBox()
+        self.end = QComboBox()
+        self.time = QComboBox()
+        t = ['None']
+        for i in range(24):
+            for j in range(60):
+                def bind_zero(n): return str(n) if n > 9 else '0' + str(n)
+                t.append(bind_zero(i) + ':' + bind_zero(j))
+        self.time.addItems(t)
+        self.start.addItems(["Arc de Triomphe", "Tour Effeil"])
+        self.end.addItems(["Arc de Triomphe", "Tour Effeil"])
+        # add bar : n, m, iteration, worst case iteration, etat (en cours, erreur, aucun)
 
         vertical_frame = QWidget()
         vertical_layout = QVBoxLayout()
@@ -33,26 +56,71 @@ class View:
         horizontal_layout = QHBoxLayout()
         menu = QWidget()
         menu_layout = QVBoxLayout()
+        route_types_select = QWidget()
+        route_types_layout = QHBoxLayout()
+        stops_select = QWidget()
+        stops_layout = QHBoxLayout()
 
-        figure = plt.figure()
-        canvas = FigureCanvas(figure)
+        self.figure = plt.figure()
+        self.canvas = FigureCanvas(self.figure)
         plt.plot()
         plt.axis('off')
         plt.text(0, 0, "...")
 
-        vertical_layout.addWidget(horizontal_frame)
-        horizontal_layout.addWidget(canvas)
-        horizontal_layout.addWidget(menu)
-        menu_layout.addWidget(self.dijkstra_condensed)
-        menu_layout.addWidget(self.bellman_condensed)
-        menu_layout.addWidget(self.bellman_expanded)
-        vertical_layout.addWidget(self.table)
+        vertical_layout.addWidget(horizontal_frame, 100)
+        horizontal_layout.addWidget(self.canvas, 100)
+        horizontal_layout.addWidget(menu, 50)
+        menu_layout.addWidget(QLabel("<b>Configuration du graphe : </b>"))
+        menu_layout.addWidget(route_types_select)
+        route_types_layout.addWidget(QLabel("Modes : "))
+        route_types_layout.addWidget(self.metro)
+        route_types_layout.addWidget(self.bus)
+        route_types_layout.addWidget(self.train)
+        stops_layout.addWidget(QLabel("Depart : "))
+        stops_layout.addWidget(self.start)
+        stops_layout.addWidget(self.time)
+        stops_layout.addWidget(QLabel("Arrivee : "))
+        stops_layout.addWidget(self.end)
+        menu_layout.addWidget(stops_select)
+        menu_layout.addSpacing(50)
+        menu_layout.addWidget(QLabel("<b>Plus court chemin :</b>"))
+        menu_layout.addWidget(self.dijkstra)
+        menu_layout.addWidget(self.bellman)
+        menu_layout.addStretch(100)
+        vertical_layout.addWidget(self.table, 25)
 
+        route_types_select.setLayout(route_types_layout)
+        stops_select.setLayout(stops_layout)
         menu.setLayout(menu_layout)
         horizontal_frame.setLayout(horizontal_layout)
         vertical_frame.setLayout(vertical_layout)
         self.main_window.setCentralWidget(vertical_frame)
+
+        menubar = self.main_window.menuBar()
+        menubar.addMenu('Fichier')  # changer d'espace de travail, quitter
+        menubar.addMenu('Edition')  # reinitialiser l'espace de travail
+        menubar.addMenu('Aide')  # a propos, rapport TX
+
+        for cbox in [self.bus, self.metro, self.train]:
+            QObject.connect(cbox, SIGNAL(
+                "stateChanged(int)"), self.refresh_plot)
+
         self.main_window.show()
+
+    def refresh_plot(self):
+        filename = 'stops'
+        if self.metro.checkState() == 2:
+            filename += '-metro'
+        if self.train.checkState() == 2:
+            filename += '-train'
+        if self.bus.checkState() == 2:
+            filename += '-bus'
+        if filename == 'stops':
+            plt.clf()
+            plt.axis('off')
+            self.canvas.draw()
+            return False
+        self.controller.ask_plot_xy(filename)
 
     def _dialog(self, type, txt, complementaryText):
         msg = QMessageBox()
@@ -72,7 +140,10 @@ class View:
         return QFileDialog.getExistingDirectory(None, "Choisissez votre espace de travail", workspace)
 
     def plot_xy(self, x, y):
+        plt.clf()
+        plt.axis('off')
         plt.plot(x, y, 'o', markersize=1)
+        self.canvas.draw()
 
     def ask_reduce_stops(self, lat, lon, radius):
         widget = QDialog(self.main_window)
