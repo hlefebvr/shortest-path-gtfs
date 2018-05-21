@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 from model import Model
@@ -24,24 +24,24 @@ class App:
             lon = self.model.get_conf('CENTER_LON')
             r = self.model.get_conf('RADIUS')
             self.view.ask_reduce_stops(lat, lon, r)
-
-        default_config = 'stops-metro-train-bus'
-        self.ask_plot_xy(default_config)
-        self.refresh_stops(default_config)
+        else:
+            default_config = 'stops-metro-train-bus'
+            self.ask_plot_xy(default_config)
+            self.refresh_stops(default_config)
 
     def build(self, lat, lon, r):
         if r > 0:
             self.model.set_conf('CENTER_LAT', lat)
             self.model.set_conf('CENTER_LON', lon)
             self.model.set_conf('RADIUS', r)
-            self.model.reduce_stops()
+            # self.model.reduce_stops()
         else:
             self.model.remove_csv('stops-reduced')
-        self.model.build_time_expanded_model()
-        self.model.build_condensed_model_from_time_expanded_model()
-        self.model.build_alpha_beta_from_condensed_model()
-        self.model.build_cuboid_from_model('time_expanded')
-        self.model.build_cuboid_from_model('condensed')
+        # self.model.build_time_expanded_model()
+        # self.model.build_condensed_model_from_time_expanded_model()
+        # self.model.build_alpha_beta_from_condensed_model()
+        # self.model.build_cuboid_from_model('time_expanded')
+        # self.model.build_cuboid_from_model('condensed')
         # self.model.build_cuboid_from_model('alphabeta')
         self.model.build_stops()
 
@@ -57,7 +57,14 @@ class App:
         self.model.bellman(mode_prefix, start_node, end_node, start_time)
 
     def show_result(self, results):
-        self.view.show_result(results)
+        try:
+            self.view.show_result(results)
+        except:
+            self.view.show_error(
+                'Graphe non connexe', 'Nous n\'avons pas ete capable de trouver un chemin correspondant...')
+
+    def report_exec(self, key, value):
+        self.view.report_exec(key, value)
 
     def highlight_stops(self, stops):
         x, y = self.model.get_stops_xy(stop_ids=stops)

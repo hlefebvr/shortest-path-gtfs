@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import os
@@ -171,9 +171,9 @@ class Model:
         f = open(path, 'w')
         if write_header:
             f.write(','.join(fields) + '\n')
-        reader = csv.DictWriter(f, fields)
-        reader.close = f.close
-        return reader
+        writer = csv.DictWriter(f, fields)
+        writer.close = f.close
+        return writer
 
     def remove_csv(self, filename):
         path = self.get_conf('WORKSPACE') + '/' + \
@@ -200,18 +200,18 @@ class Model:
         file2_csv_reader = csv.reader(file2_reader)
         output_csv_writer = csv.writer(output_writer)
 
-        header1 = file1_csv_reader.next()
-        header2 = file2_csv_reader.next()
+        header1 = file1_csv_reader.__next__()
+        header2 = file2_csv_reader.__next__()
         del header2[keys2[0]]
         output_csv_writer.writerow(header1 + header2)
 
-        line_from_file1 = file1_csv_reader.next()
-        line_from_file2 = file2_csv_reader.next()
+        line_from_file1 = file1_csv_reader.__next__()
+        line_from_file2 = file2_csv_reader.__next__()
 
         while True:
             if line_from_file1[keys1[0]] < line_from_file2[keys2[0]]:
                 try:
-                    line_from_file1 = file1_csv_reader.next()
+                    line_from_file1 = file1_csv_reader.__next__()
                     continue
                 except:
                     break
@@ -219,7 +219,7 @@ class Model:
                 del line_from_file2[keys2[0]]
                 output_csv_writer.writerow(line_from_file1 + line_from_file2)
             try:
-                line_from_file2 = file2_csv_reader.next()
+                line_from_file2 = file2_csv_reader.__next__()
             except:
                 break
 
@@ -316,7 +316,7 @@ class Model:
                         'route': stop1['route_short_name']
                     }
                     all_stops[stop1['stop_id']] = True
-                    arcs_transport.writerow(arc)
+                    arcs_transport.writerow(dict(arc))
         print('Tri des transfers (transfers) par stops de départ (from_stop_id)...')
         csvsort(workspace_path + 'transfers' + extension, [0],
                 output_filename=workspace_path + 'transfers' + extension)
@@ -330,13 +330,13 @@ class Model:
         arcs_transport = self.open_csv('arcs_transport')
         arcs_transfers = self.new_csv('arcs_transfers', self.TIMETABLE_HEADERS)
         stop = False
-        arc = arcs_transport.next()
+        arc = arcs_transport.__next__()
 
         for tr in transfers:
             if tr['from_stop_id'] in all_stops:
                 while tr['from_stop_id'] > arc['from']:
                     try:
-                        arc = arcs_transport.next()
+                        arc = arcs_transport.__next__()
                     except:
                         stop = True
                         break
@@ -354,11 +354,11 @@ class Model:
                             'route_type': '-1',  # signifiant "transfer"
                             'route': '-1'
                         }
-                        arcs_transfers.writerow(arc)
+                        arcs_transfers.writerow(dict(arc))
                     except:
                         print('There was one error...')
                     try:
-                        arc = arcs_transport.next()
+                        arc = arcs_transport.__next__()
                     except:
                         stop = True
                         break
@@ -378,13 +378,13 @@ class Model:
         error = 0
         for arc in arcs_transport:
             try:
-                time_expanded.writerow(arc)
+                time_expanded.writerow(dict(arc))
             except:
                 # on a trouvé le cas où deux lignes étaient sur une...
                 error += 1
         for arc in arcs_transfers:
             try:
-                time_expanded.writerow(arc)
+                time_expanded.writerow(dict(arc))
             except:
                 # on a trouvé le cas où deux lignes étaient sur une...
                 error += 1
@@ -465,7 +465,7 @@ class Model:
                     error_count += 1
                     continue
                 if route_type in combi or route_type == -1:  # -1 is for transfers
-                    outputs[combi].writerow(arc)
+                    outputs[combi].writerow(dict(arc))
         arcs.close()
         for combi in cuboid:
             outputs[combi].close()
@@ -477,6 +477,7 @@ class Model:
         print('Building alpha-beta')
 
     def build_stops(self):
+        print("Building stops...")
         modes = list(self.MODES)
         n_modes = len(modes)
         cuboid = []
@@ -532,13 +533,13 @@ class Model:
             except:
                 print('An error occured')
                 continue
-            if (departure >= start_time and arrival <= start_time + 60):
-                output.writerow(arc)
+            if (departure >= start_time and arrival <= start_time + 120):
+                output.writerow(dict(arc))
         time_expanded.close()
 
     def bellman(self, mode_prefix, start_node, end_node, start_time):
         def id(stop_id, time): return str(stop_id) + '@' + str(time)
-        print('Bellman-Ford')
+        self.controller.report_exec('state', 'preparation...')
         start_id = id(start_node, minutes(start_time))
         if start_time == 'None':
             filename = 'condensed' + mode_prefix
@@ -554,17 +555,18 @@ class Model:
         d.set(start_id, 0)
         p = DataStore(None)  # sets all the predecessors to None
 
-        print("Executing Bellman with " + str(n) +
-              " nodes from " + start_id + " to " + end_node + "(" + filename + ")")
+        self.controller.report_exec('state', 'en cours...')
         for k in range(n - 1):
-            print(k)
+            self.controller.report_exec('k', k)
             has_changed = False
             arcIterator = self.open_csv(filename)
+            m = 0
             for row in arcIterator:
                 try:
                     u = id(row['from'], row['departure'])
                     v = id(row['to'], row['arrival'])
                     w = int(row['travel_time'])
+                    m += 1
                 except:
                     print('There was an error on ' + row['from'])
                     continue
@@ -574,8 +576,9 @@ class Model:
                     d.set(v, d.get(u) + w)
                     p.set(v, u)
             arcIterator.close()
+            self.controller.report_exec('m', m)
             if(has_changed == False):
-                print 'No changes were made during last execution... (', k, ')'
+                print('No changes were made during last execution... (' + str(k) + ')')
                 break
 
         end_id = id(end_node, minutes(start_time))
@@ -611,6 +614,7 @@ class Model:
                     path[i] = (time, stop['name'], '',
                                stop['route_type'], x, y)
         stops.close()
+        self.controller.report_exec('state', 'termine')
         self.controller.show_result(path)
 
     def dijkstra(self, mode_prefix, start_node, end_node):
