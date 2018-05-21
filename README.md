@@ -1,23 +1,42 @@
 # Graph algorithms applied to GTFS data
 
+Python3 | LMDB | MatplotLib | CSV | GTFS
+
+```
+cd app/ && python3 main.py
+```
+
+## Screenshot
+
+![Results with time expanded model](./src/with_times.png)
+![Results with condensed model](./src/without_times.png)
+
 ## Data generation
 
-- Joining GTFS data **OK**
-- Building successors/predecessors list **OK**
-- Adding transfers to successors/predecessors list **OK**
-- Adding interest points near stops (valuations = times by walk) **OK**
-- Building stop_id stop_name correspondance **OK**
-- Building time expanded model from GTFS __TODO__
+- Reducing stops with respect to their location (e.g. heart of Paris)
+- Building time expanded model of the graph as unordered arcs list
+- Building condensed model of the graph (with minimum travel time as arcs' values) as unordered arcs list
+- Building successor's list for time expanded model and condensed model (managed with LMDB) : **TODO**
 
 ## Algorithms
 
-- Dijkstra **OK**
-- Bellman **OK**
-- Bellman with time expanded model _TODO_
-- Yen with time expanded model _TODO_
-- Dijkstra with time expanded model __TODO__
+- Dijkstra's
+- Bellman's
+- Yen's : **TODO**
 
 ## Graph vizualisation
 
-- Using pyplot to draw graph **OK** (for subway points only, doable but too long for bus stops)
-- Drawing optimal solution to shortest path problem _TODO_
+- Drawing graph nodes in GUI and printing optimal paths
+
+## Dependencies
+
+- python3
+- csvsort
+- matplotlib
+- pyqt4
+
+## GTFS data sets
+
+You can download GTFS data sets at [Navitia.io](https://www.navitia.io/datasets). We used and tested with [STIF Transport in Paris and Suburb](https://navitia.opendatasoft.com/explore/dataset/fr-idf/table/?sort=type_file) dataset (default values for stop reduction are specific to this dataset)
+
+Once downloaded, extract the .zip file and select the create folder as workspace within the software execution. 
