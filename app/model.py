@@ -1,12 +1,9 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import os
-import csv
+import os, csv, pickle, lmdb, itertools
 from math import cos, sin, radians, atan2, sqrt
 from csvsort import csvsort
-import itertools
-
 
 class Memo:
     def __init__(self, mem_size):
