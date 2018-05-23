@@ -43,6 +43,7 @@ class App:
         self.model.build_cuboid_from_model('time_expanded')
         self.model.build_cuboid_from_model('condensed')
         # self.model.build_cuboid_from_model('alphabeta')
+        self.model.build_successors_list()
         self.model.build_stops()
 
     def ask_plot_xy(self, filename):
