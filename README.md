@@ -1,4 +1,4 @@
-# Graph algorithms applied to GTFS data
+# Multimodal Graphs and Shortest Path problems on real instances (GTFS datasets)
 
 ```
 cd main/ && python3 main.py
