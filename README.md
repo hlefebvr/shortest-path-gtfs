@@ -1,27 +1,22 @@
 # Graph algorithms applied to GTFS data
 
-Python3 | LMDB | MatplotLib | CSV | GTFS
-
 ```
-cd app/ && python3 main.py
+cd main/ && python3 main.py
 ```
 
 ## Screenshot
 
-![Results with time expanded model](./src/with_times.png)
-![Results with condensed model](./src/without_times.png)
+![Execution example](./src/with_times.png)
 
 ## Data generation
 
-- Reducing stops with respect to their location (e.g. heart of Paris)
-- Building time expanded model of the graph as unordered arcs list
-- Building condensed model of the graph (with minimum travel time as arcs' values) as unordered arcs list
-- Building successor's list for time expanded model and condensed model (managed with LMDB) : **TODO**
+- Import GTFS data in SQLite (optional - recommended - stop reduction)
+- Build timetable from GTFS stop_times.txt
+- Build successors list with LMDB
 
 ## Algorithms
 
-- Dijkstra's
-- Bellman's
+- Dijkstra's algorithm on time dependant model
 - Yen's : **TODO**
 
 ## Graph vizualisation
@@ -30,10 +25,16 @@ cd app/ && python3 main.py
 
 ## Dependencies
 
-- python3
-- csvsort
-- matplotlib
-- pyqt4
+This project has been developed with
+
+| Module   | Version  | Description                            |
+|:--------:|:--------:|:--------------------------------------:|
+| python3  | 3.6.5    |                                        |
+| SQLite   | 2.6.0    | SQL file data storage for GTFS queries |
+| LMDB     | 0.86     | key-value storage for successor's list | 
+|MatPlotLib| 2.1.1    | 2D ploting library                     |
+| Qt       | 4.8.7    | GUI module                             |
+| PyQt     | 4.12.1   | Qt python adapter                      |
 
 ## GTFS data sets
 
