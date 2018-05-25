@@ -6,7 +6,7 @@ from PyQt4.QtGui import QMainWindow, QSplitter, QWidget, \
                         QHBoxLayout, QVBoxLayout, QTableWidget, QCheckBox, \
                         QLabel, QComboBox, QPushButton, QHeaderView, \
                         QMessageBox, QFileDialog, QProgressBar, QTableWidgetItem, \
-                        QErrorMessage, QColor, QHeaderView
+                        QErrorMessage, QColor, QHeaderView, QAction
 from PyQt4.QtCore import Qt, QCoreApplication
 
 # MatPlotLib imports
@@ -118,6 +118,25 @@ class View(QMainWindow):
         self.setCentralWidget(self.ui.centralWidget)
         self.progressBar = None
 
+        # Menu
+        # exitAction.triggered.connect(QtGui.qApp.quit)
+
+        menubar = self.menuBar()
+
+        ## Fichier
+        self.changeWorkspaceAction = QAction("Changer de dossier source", self)
+        self.exitAction = QAction("Quitter", self)
+        self.fileMenu = menubar.addMenu('&Fichier')
+        self.fileMenu.addAction(self.changeWorkspaceAction)
+        self.fileMenu.addAction(self.exitAction)
+
+        ## A propos
+        self.showReportAction = QAction("Voir le rapport (pdf)", self)
+        self.aboutAction = QAction("À propos", self)
+        self.aboutMenu = menubar.addMenu('À propos')
+        self.aboutMenu.addAction(self.showReportAction)
+        self.aboutMenu.addAction(self.aboutAction)
+
         # Connect SLOTS and SIGNALS
         self.ui.queryModeBus.stateChanged.connect(lambda _ : self.controller.reloadStops(self.getSelectedModes()))
         self.ui.queryModeMetro.stateChanged.connect(lambda _ : self.controller.reloadStops(self.getSelectedModes()))
@@ -127,19 +146,22 @@ class View(QMainWindow):
 
         self.ui.queryDijkstraButton.clicked.connect(lambda _ : self.controller.runShortestPath(self.getSelectedModes(), self.getExecutionConfiguration()))
 
+        self.changeWorkspaceAction.triggered.connect(self.controller.changeWorkspace)
+        self.exitAction.triggered.connect(self.controller.exit)
+
         # Let the show begin
         self.show()
 
     # OTHER WINDOWS
 
-    def askNewWorkspace(self, default):
-        if QMessageBox.Yes == QMessageBox.question(self, 'Dossier de travail', 'Vous n\'avez pas encore séléctionné d\'espace de travail.\nVoulez vous sélectionner un dossier GTFS ?', QMessageBox.No | QMessageBox.Yes):
+    def askNewWorkspace(self, default, confirm = False):
+        if not confirm or QMessageBox.Yes == QMessageBox.question(self, 'Dossier de travail', 'Vous n\'avez pas encore séléctionné d\'espace de travail.\nVoulez vous sélectionner un dossier GTFS ?', QMessageBox.No | QMessageBox.Yes):
             return QFileDialog.getExistingDirectory(self, "Choisissez votre espace de travail", default)
-        else: self.controller.terminate()
+        else: self.controller.exit()
 
     def askInitWorkspace(self):
         reply = QMessageBox.question(self, 'Dossier de travail non initialisé', 'Le dossier séléctionné est valide mais n\'a pas encore été initialisé.\nVoulez-vous le faire maintenant ?', QMessageBox.No | QMessageBox.Yes)
-        return True if reply == QMessageBox.Yes else self.controller.terminate()
+        return True if reply == QMessageBox.Yes else self.controller.exit()
     
     def askInitWorkspaceParameters(self, lat, lon, r):
         window = ReduceStopsWindow(lat, lon, r)

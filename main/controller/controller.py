@@ -14,7 +14,7 @@ class App(QApplication):
         self.exec_()
 
     # FROM MODEL TO VIEW
-    def askNewWorkspace(self, path = '~'): return self.view.askNewWorkspace(path)
+    def askNewWorkspace(self, path = '~', confirm = False): return self.view.askNewWorkspace(path, confirm)
     def askInitWorkspace(self): return self.view.askInitWorkspace()
     def askInitWorkspaceParameters(self, lat, lon, r): return self.view.askInitWorkspaceParameters(lat, lon, r)
     def showLoading(self, txt): return self.view.showLoading(txt)
@@ -31,3 +31,6 @@ class App(QApplication):
     def runShortestPath(self, modes, params):
         stop_ids, stop_times = self.model.dijkstra(params['from_stop_id'], params['departure_time'], params['to_stop_id'], modes)
         self.drawStopPath(stop_ids, stop_times)
+    def changeWorkspace(self, default, confirm = False):
+        self.model.changeWorkspace('~', confirm)
+        self.reloadStops()

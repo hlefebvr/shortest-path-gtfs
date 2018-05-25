@@ -227,13 +227,15 @@ class Model:
         self.controller = controller
         self.config = self.Config()
         
-        # Checks if we are in GFTS folder
         gtfs = self.config.get('gtfs')
+        self.changeWorkspace(gtfs, True)
+
+    def changeWorkspace(self, newWorkspace, confirm = False):
         while True:
-            self.workspace = self.Workspace(self, gtfs)
+            self.workspace = self.Workspace(self, newWorkspace)
             if self.workspace.canBeUsedAsGTFS(): break
-            gtfs = self.controller.askNewWorkspace(gtfs)
-            self.config.set('gtfs', gtfs)
+            newWorkspace = self.controller.askNewWorkspace(newWorkspace, confirm)
+            self.config.set('gtfs', newWorkspace)
 
         # Checks if workspace has already been initiated
         if not self.workspace.isReady() and self.controller.askInitWorkspace():
