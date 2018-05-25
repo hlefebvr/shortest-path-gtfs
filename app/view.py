@@ -142,6 +142,13 @@ class View:
 
         self.main_window.show()
 
+    def get_modes(self):
+        modes = []
+        if self.metro.checkState() == 2: modes += [1]
+        if self.train.checkState() == 2: modes += [2]
+        if self.bus.checkState() == 2: modes += [3]
+        return modes
+
     def get_modes_prefix(self):
         filename = ''
         if self.metro.checkState() == 2:
@@ -153,14 +160,14 @@ class View:
         return filename
 
     def refresh(self):
-        filename = 'stops' + self.get_modes_prefix()
-        if filename == 'stops':
+        modes = self.get_modes()
+        if modes == []:
             plt.clf()
             plt.axis('off')
             self.canvas.draw()
             return False
-        self.controller.ask_plot_xy(filename)
-        self.controller.refresh_stops(filename)
+        self.controller.ask_plot_xy(modes)
+        self.controller.refresh_stops(modes)
 
     def _dialog(self, type, txt, complementaryText):
         msg = QMessageBox()

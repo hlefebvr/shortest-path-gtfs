@@ -228,15 +228,33 @@ class Model:
         self.remove_csv('file1.sorted')
         self.remove_csv('file2.sorted')
 
-    def get_stops_xy(self, filename='stops-metro-train-bus', stop_ids=None):
-        stops = self.open_csv(filename)
+    def get_stops_xy(self, modes=[1, 2, 3], stop_ids=None):
         x, y = [], []
-        for stop in stops:
-            if (stop_ids == None) or (stop['id'] in stop_ids):
+        workspace_path = self.get_conf('WORKSPACE')
+        stop_db = lmdb.open(workspace_path + '/stops')
+        txn = stop_db.begin()
+        
+        if stop_ids != None:
+            for stop_id in stop_ids:
+                if stop_id == 'None': continue
+                stop_id = pickle.dumps(stop_id)
+                stop = pickle.loads(txn.get(stop_id))
                 _x, _y = getCartesian(stop['lat'], stop['lon'])
                 x += [_x]
                 y += [_y]
-        stops.close()
+            txn.commit()
+            return x, y
+
+        cursor = txn.cursor()
+        for stop_id, stop in cursor:
+            stop_id = pickle.loads(stop_id)
+            stop = pickle.loads(stop)
+            if ( stop['route_type'] in modes ):
+                _x, _y = getCartesian(stop['lat'], stop['lon'])
+                x += [_x]
+                y += [_y]
+        txn.commit()
+        print(x, y)
         return x, y
 
     def distance(self, lat1, lon1, lat2, lon2):
@@ -475,41 +493,29 @@ class Model:
 
     def build_stops(self):
         print("Building stops...")
-        modes = list(self.MODES)
-        n_modes = len(modes)
-        cuboid = []
-        for i in range(1, n_modes + 1):
-            cuboid += list(itertools.combinations(modes, i))
-        path = self.get_conf('WORKSPACE') + '/jointure' + \
-            self.get_conf('EXTENSION')
-        csvsort(path, ['stop_id'], output_filename=path, has_header=True)
-        memo = Memo(2)
+        workspace_path = self.get_conf('WORKSPACE')
         jointure = self.open_csv('jointure')
-        outputs = {}
-        for combi in cuboid:
-            filename = 'stops'
-            for mode_index in combi:
-                filename += '-' + self.MODES[mode_index]
-            outputs[combi] = self.new_csv(filename, self.STOPSMAP_HEADERS)
+        stops_db = lmdb.open(workspace_path  + '/stops')
+        txn = stops_db.begin(write=True)
+        memo = Memo(2)
         for line in jointure:
             memo.put(line)
             if memo.is_ready():
                 line1, line2 = memo.get()
                 if (line1['stop_id'] != line2['stop_id']):
-                    for combi in cuboid:
-                        if int(line1['route_type']) in combi:
-                            outputs[combi].writerow({
-                                'id': line1['stop_id'],
-                                'name': line1['stop_name'],
-                                'lat': line1['stop_lat'],
-                                'lon': line1['stop_lon'],
-                                'route_type': line1['route_type']
-                            })
-
+                    key = pickle.dumps(line1['stop_id'])
+                    value = pickle.dumps({
+                        'id': line1['stop_id'],
+                        'name': line1['stop_name'],
+                        'lat': line1['stop_lat'],
+                        'lon': line1['stop_lon'],
+                        'route_type': line1['route_type']
+                    })
+                    txn.put(key, value)
+        txn.commit()
+        stops_db.close()
         jointure.close()
-        for combi in cuboid:
-            outputs[combi].close()
-        print('Stops have been generated')
+        print("Stops have been generated...")
 
     def prepare_bellman(self, source, start_node, start_time):
         start_time = int(start_time)
@@ -591,6 +597,7 @@ class Model:
                         min_time = curr_time
                         end_id = node
 
+        print("Retrieving path...")
         x = end_id
         i = 0
         path = []
@@ -599,23 +606,51 @@ class Model:
             path.append(x)
             x = p.get(x)
         path.append(start_id)
-        stops = self.open_csv('stops-metro-train-bus')  # + mode_prefix)
-        for stop in stops:
-            for i in range(len(path)):
-                try:
-                    node_id, time = path[i].split("@")
-                except:
-                    continue
-                if stop['id'] == node_id:
-                    x, y = getCartesian(stop['lat'], stop['lon'])
-                    path[i] = (time, stop['name'], '',
-                               stop['route_type'], x, y)
-        stops.close()
+
+        print("Formating result...")
+        db_path = self.get_conf("WORKSPACE") + '/stops'
+        stop_db = lmdb.open(db_path)
+        txn = stop_db.begin()
+        for i in range(len(path)):
+            try:
+                node_id, time = path[i].split("@")
+            except:
+                continue
+            stop = pickle.loads(txn.get(pickle.dumps(node_id)))
+            x, y = getCartesian(stop['lat'], stop['lon'])
+            path[i] = (time, stop['name'], '', stop['route_type'], x, y)
+        txn.commit()
+        stop_db.close()
         self.controller.report_exec('state', 'termine')
         self.controller.show_result(path)
 
     def dijkstra(self, mode_prefix, start_node, end_node):
         print('Dijkstra')
 
-    def get_stops_iterator(self, filename):
-        return self.open_csv(filename)
+    def get_stops_iterator(self, modes):
+        path = self.get_conf('WORKSPACE') + '/stops'
+        
+        class StopIterator:
+            def __init__(self, _modes):
+                self.modes = _modes
+                self.stop_db = lmdb.open(path)
+                self.txn = self.stop_db.begin()
+                self.cursor = None
+                self.last_value = None
+            
+            def __iter__(self):
+                self.cursor = self.txn.cursor()
+                return self
+            
+            def __next__(self):
+                try:
+                    self.cursor = self.txn.cursor(self.last_value)
+                except:
+                    pass
+                for _, value in self.cursor:
+                    self.last_value = value
+                    value = pickle.loads(value)
+                    if int(value['route_type']) in self.modes:
+                        return value
+                raise StopIteration
+        return StopIterator(modes)

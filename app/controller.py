@@ -25,7 +25,7 @@ class App:
             r = self.model.get_conf('RADIUS')
             self.view.ask_reduce_stops(lat, lon, r)
         else:
-            default_config = 'stops-metro-train-bus'
+            default_config = [1, 2, 3]
             self.ask_plot_xy(default_config)
             self.refresh_stops(default_config)
 
@@ -34,23 +34,23 @@ class App:
             self.model.set_conf('CENTER_LAT', lat)
             self.model.set_conf('CENTER_LON', lon)
             self.model.set_conf('RADIUS', r)
-            self.model.reduce_stops()
+            # self.model.reduce_stops()
         else:
             self.model.remove_csv('stops-reduced')
-        self.model.build_time_expanded_model()
-        self.model.build_condensed_model_from_time_expanded_model()
-        self.model.build_alpha_beta_from_condensed_model()
-        self.model.build_cuboid_from_model('time_expanded')
-        self.model.build_cuboid_from_model('condensed')
+        # self.model.build_time_expanded_model()
+        # self.model.build_condensed_model_from_time_expanded_model()
+        # self.model.build_alpha_beta_from_condensed_model()
+        # self.model.build_cuboid_from_model('time_expanded')
+        # self.model.build_cuboid_from_model('condensed')
         # self.model.build_cuboid_from_model('alphabeta')
         self.model.build_stops()
 
-    def ask_plot_xy(self, filename):
-        x, y = self.model.get_stops_xy(filename)
+    def ask_plot_xy(self, modes):
+        x, y = self.model.get_stops_xy(modes)
         self.view.plot_xy(x, y)
 
-    def refresh_stops(self, filename):
-        stops = self.model.get_stops_iterator(filename)
+    def refresh_stops(self, modes):
+        stops = self.model.get_stops_iterator(modes)
         self.view.fill_stops(stops)
 
     def bellman(self, mode_prefix, start_node, end_node, start_time='None'):
