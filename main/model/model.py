@@ -9,6 +9,7 @@ from math import acos, cos, sin, radians
 from heapq import heappop, heappush
 from .classes import LmdbDataStore, Memo
 from .functions import minutes
+from .constants import getFieldType, getKStatement, getCreateTableOrder
 
 BASEPATH = os.path.dirname(os.path.abspath(__file__))
 
@@ -53,22 +54,44 @@ class Model:
             db = sqlite3.connect(self.path + 'gtfs.db')
             db.execute('PRAGMA foreign_keys = ON') # Enables Foreign keys in SQLite
             
-            # Create all tables
-            with open('%s/create.sql' % BASEPATH, 'r') as createTableSQL:
-                commands = createTableSQL.read().split(';')
-                for cmd in commands:
-                    db.execute(cmd)
+            # Create all used GTFS tables
+            for tableName in getCreateTableOrder():
+                with open('%s%s.txt' % (self.path, tableName), 'r', encoding = 'utf8') as f:
+                    csvReader = csv.reader(f)
+                    header = next(csvReader)
+                    fieldStatements = [ '%s %s' % (field, getFieldType(tableName, field)) for field in header ]
+                    db.execute('CREATE TABLE %s (%s);' % (tableName, ', '.join(fieldStatements + [getKStatement(tableName)])))
+            
+            db.commit()
+
+            # Create tables used by the applciation
+            db.execute('CREATE TABLE timetable ( \
+                from_stop_id VARCHAR(30), \
+                to_stop_id VARCHAR(30), \
+                departure_time INT, \
+                travel_time INT, \
+                route_type INT, \
+                trip_id VARCHAR(30) \
+            );')
+
+            db.execute('CREATE TABLE stops_routes ( \
+                stop_id VARCHAR(30) REFERENCES stops(stop_id), \
+                route_id VARCHAR(40) REFERENCES routes(route_id), \
+                PRIMARY KEY (stop_id, route_id) \
+            );')
+
             db.commit()
             
             # Import CSV files into SQLite
-            def insertCSV(tableName, filter = lambda _ : True):
+            def insertCSV(tableName, filter = lambda header, row : True):
                 self.model.controller.showLoading("Importations des données : %s" % tableName)
                 nInserted = 0
                 with open('%s%s.txt' % (self.path, tableName), 'r', encoding = 'utf8') as f:
                     csvReader = csv.reader(f)
-                    placeholders = '(?%s)' % (', ?' * (len(next(csvReader)) - 1) )
+                    header = next(csvReader)
+                    placeholders = '(?%s)' % (', ?' * (len(header) - 1) )
                     for line in csvReader:
-                        if filter(line):
+                        if filter(header, line):
                             try:
                                 db.execute("INSERT INTO %s VALUES %s" % (tableName, placeholders), tuple(line))
                                 nInserted += 1
@@ -76,11 +99,11 @@ class Model:
                 db.commit()
                 print('Inserted : %s' % nInserted)
             
-            if lat != '' and lon != '' and r != '':
+            if lat != None and lon != None and r != None:
                 distance = lambda p1_lat,p1_long,p2_lat,p2_long : (6371*acos(cos(radians(p1_lat))*cos(radians(p2_lat))*cos(radians(p2_long)-radians(p1_long))+sin(radians(p1_lat))*sin(radians(p2_lat))))
-                insertCSV('stops', lambda stop : distance(float(stop[3]), float(stop[4]), float(lat), float(lon)) <= float(r))
+                insertCSV('stops', lambda header, stop : distance(float(stop[header.index('stop_lat')]), float(stop[header.index('stop_lon')]), float(lat), float(lon)) <= float(r))
             else: insertCSV('stops')
-            insertCSV('routes', lambda route : int(route[5]) in [1, 3] )
+            insertCSV('routes', lambda header, route : int(route[header.index('route_type')]) in [1, 3] )
             insertCSV('trips')
             insertCSV('stop_times')
             insertCSV('transfers')
@@ -184,7 +207,7 @@ class Model:
             cursor = db.cursor()
             names, lats, lons, types, rnames, rcols = [], [], [], [], [], []
             for stop_id in ids:
-                cursor.execute("SELECT stop_name, stop_lat, stop_lon, route_type, route_short_time, route_color FROM stops, stops_routes, routes WHERE stops.stop_id = stops_routes.stop_id AND stops_routes.route_id = routes.route_id AND stops.stop_id = '%s'" % stop_id)
+                cursor.execute("SELECT stop_name, stop_lat, stop_lon, route_type, route_short_name, route_color FROM stops, stops_routes, routes WHERE stops.stop_id = stops_routes.stop_id AND stops_routes.route_id = routes.route_id AND stops.stop_id = '%s'" % stop_id)
                 stop_name, stop_lat, stop_lon, route_type, route_name, route_color = cursor.fetchone()
                 names.append(stop_name)
                 lats.append(stop_lat)
