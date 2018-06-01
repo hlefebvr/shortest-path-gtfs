@@ -38,6 +38,6 @@ This project has been developed with
 
 ## GTFS data sets
 
-You can download GTFS data sets at [Navitia.io](https://www.navitia.io/datasets). We used and tested with [STIF Transport in Paris and Suburb](https://navitia.opendatasoft.com/explore/dataset/fr-idf/table/?sort=type_file) dataset (default values for stop reduction are specific to this dataset)
+You can download GTFS data sets at [Navitia.io](https://www.navitia.io/datasets). We used and tested with [STIF Transport in Paris and Suburb](https://navitia.opendatasoft.com/explore/dataset/fr-idf/table/?sort=type_file) dataset but works with most GTFS datasets (default values for stop reduction are specific to this dataset)
 
 Once downloaded, extract the .zip file and select the create folder as workspace within the software execution. 
