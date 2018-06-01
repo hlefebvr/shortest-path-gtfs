@@ -103,7 +103,8 @@ class Model:
                 distance = lambda p1_lat,p1_long,p2_lat,p2_long : (6371*acos(cos(radians(p1_lat))*cos(radians(p2_lat))*cos(radians(p2_long)-radians(p1_long))+sin(radians(p1_lat))*sin(radians(p2_lat))))
                 insertCSV('stops', lambda header, stop : distance(float(stop[header.index('stop_lat')]), float(stop[header.index('stop_lon')]), float(lat), float(lon)) <= float(r))
             else: insertCSV('stops')
-            insertCSV('routes', lambda header, route : int(route[header.index('route_type')]) in [1, 3] )
+            # FILTER ON ROUTE_TYPE : lambda header, route : int(route[header.index('route_type')]) in [1, 3]
+            insertCSV('routes')
             insertCSV('trips')
             insertCSV('stop_times')
             insertCSV('transfers')
