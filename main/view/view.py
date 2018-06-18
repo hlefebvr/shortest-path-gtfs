@@ -51,19 +51,47 @@ class View(QMainWindow):
             self.queryConfigurationPanelLayout.addWidget(self.queryConfigurationTitleLabel)
 
             ### Mode selector
+            #### First line
             self.queryModeSelector = QWidget()
             self.queryConfigurationPanelLayout.addWidget(self.queryModeSelector)
             
             self.queryModeSelectorLayout = QHBoxLayout()
             self.queryModeSelector.setLayout(self.queryModeSelectorLayout)
             
+            self.queryModeTramway = QCheckBox("Tramway")
+            self.queryModeSelectorLayout.addWidget(self.queryModeTramway)
             self.queryModeMetro = QCheckBox("Metro")
             self.queryModeSelectorLayout.addWidget(self.queryModeMetro)
             self.queryModeBus = QCheckBox("Bus")
             self.queryModeSelectorLayout.addWidget(self.queryModeBus)
+            self.queryModeTrain = QCheckBox("Train")
+            self.queryModeSelectorLayout.addWidget(self.queryModeTrain)
 
+            #### Second line
+            self.queryModeSelector2 = QWidget()
+            self.queryConfigurationPanelLayout.addWidget(self.queryModeSelector2)
+            
+            self.queryModeSelectorLayout2 = QHBoxLayout()
+            self.queryModeSelector2.setLayout(self.queryModeSelectorLayout2)
+            
+            self.queryModeFerry = QCheckBox("Ferry")
+            self.queryModeSelectorLayout2.addWidget(self.queryModeFerry)
+            self.queryModeTramwayCable = QCheckBox("Tramway à cable")
+            self.queryModeSelectorLayout2.addWidget(self.queryModeTramwayCable)
+            self.queryModeTelepherique = QCheckBox("Téléphérique")
+            self.queryModeSelectorLayout2.addWidget(self.queryModeTelepherique)
+            self.queryModeFuniculaire = QCheckBox("Funiculaire")
+            self.queryModeSelectorLayout2.addWidget(self.queryModeFuniculaire)
+
+            #### Check all modes
+            self.queryModeTramway.setCheckState(Qt.Checked)
             self.queryModeMetro.setCheckState(Qt.Checked)
             self.queryModeBus.setCheckState(Qt.Checked)
+            self.queryModeTrain.setCheckState(Qt.Checked)
+            self.queryModeTramwayCable.setCheckState(Qt.Checked)
+            self.queryModeFerry.setCheckState(Qt.Checked)
+            self.queryModeFuniculaire.setCheckState(Qt.Checked)
+            self.queryModeTelepherique.setCheckState(Qt.Checked)
 
             ### Stops selector
             self.queryStopSelector = QWidget()
@@ -139,8 +167,14 @@ class View(QMainWindow):
         self.aboutMenu.addAction(self.aboutAction)
 
         # Connect SLOTS and SIGNALS
+        self.ui.queryModeTramway.stateChanged.connect(lambda _ : self.controller.reloadStops(self.getSelectedModes()))
         self.ui.queryModeBus.stateChanged.connect(lambda _ : self.controller.reloadStops(self.getSelectedModes()))
         self.ui.queryModeMetro.stateChanged.connect(lambda _ : self.controller.reloadStops(self.getSelectedModes()))
+        self.ui.queryModeFerry.stateChanged.connect(lambda _ : self.controller.reloadStops(self.getSelectedModes()))
+        self.ui.queryModeFuniculaire.stateChanged.connect(lambda _ : self.controller.reloadStops(self.getSelectedModes()))
+        self.ui.queryModeTelepherique.stateChanged.connect(lambda _ : self.controller.reloadStops(self.getSelectedModes()))
+        self.ui.queryModeTrain.stateChanged.connect(lambda _ : self.controller.reloadStops(self.getSelectedModes()))
+        self.ui.queryModeTramwayCable.stateChanged.connect(lambda _ : self.controller.reloadStops(self.getSelectedModes()))
 
         self.ui.queryStopStartNode.currentIndexChanged.connect(self.highlightSlectedStops)
         self.ui.queryStopEndNode.currentIndexChanged.connect(self.highlightSlectedStops)
@@ -192,8 +226,14 @@ class View(QMainWindow):
 
     def getSelectedModes(self):
         modes = []
+        if self.ui.queryModeTramway.checkState() == Qt.Checked: modes += [0]
         if self.ui.queryModeMetro.checkState() == Qt.Checked: modes += [1]
+        if self.ui.queryModeTrain.checkState() == Qt.Checked: modes += [2]
         if self.ui.queryModeBus.checkState() == Qt.Checked: modes += [3]
+        if self.ui.queryModeFerry.checkState() == Qt.Checked: modes += [4]
+        if self.ui.queryModeTramwayCable.checkState() == Qt.Checked: modes += [5]
+        if self.ui.queryModeTelepherique.checkState() == Qt.Checked: modes += [6]
+        if self.ui.queryModeFuniculaire.checkState() == Qt.Checked: modes += [7]
         return modes
 
     def getExecutionConfiguration(self):
@@ -204,7 +244,7 @@ class View(QMainWindow):
         }
 
     def fillResultTable(self, stop_times, stop_names, route_types, route_names, route_colors):
-        route_type_str = { 1: 'Metro', 2: 'Train', 3: 'Bus' }
+        route_type_str = { 0: 'Tramway/Métro Léger', 1: 'Metro', 2: 'Train', 3: 'Bus', 4: 'Ferry', 5: 'Tramway cable', 6: 'Téléphérique', 7: 'Funiculaire' }
         n = len(stop_times)
         
         self.ui.resultPanel.clear()
@@ -241,7 +281,22 @@ class View(QMainWindow):
             
             # Stop names
             self.ui.resultPanel.setItem(2, i, QTableWidgetItem(stop_names[i]))
+        span_width = i - current_route_index + 1
+        if span_width != 1:
+            self.ui.resultPanel.setSpan(0, current_route_index, 1, span_width)
+            self.ui.resultPanel.setSpan(1, current_route_index, 1, span_width)
+            
         self.ui.resultPanel.horizontalHeader().setResizeMode(QHeaderView.ResizeToContents)
+
+    def disableModes(self, allowedModes):
+        self.ui.queryModeTramway.setDisabled(0 not in allowedModes)
+        self.ui.queryModeMetro.setDisabled(1 not in allowedModes)
+        self.ui.queryModeTrain.setDisabled(2 not in allowedModes)
+        self.ui.queryModeBus.setDisabled(3 not in allowedModes)
+        self.ui.queryModeFerry.setDisabled(4 not in allowedModes)
+        self.ui.queryModeTramwayCable.setDisabled(5 not in allowedModes)
+        self.ui.queryModeTelepherique.setDisabled(6 not in allowedModes)
+        self.ui.queryModeFuniculaire.setDisabled(7 not in allowedModes)
 
     # PLOTS AND GRAPHS
 
@@ -252,12 +307,13 @@ class View(QMainWindow):
         bot_left_lon = min(lon)
         top_right_lat = max(lat)
         top_right_lon = max(lon)
-        self.map = Basemap(resolution='i', projection='cyl', \
-            llcrnrlon=bot_left_lon, llcrnrlat=bot_left_lat, \
-            urcrnrlon=top_right_lon, urcrnrlat=top_right_lat)
-        self.map.arcgisimage(service='World_Street_Map', xpixels = 1000, ypixels=1000, verbose= False)
-        palette = ['#5289c2', '#f99625', '#f52828']
-        colors = [ palette[t % 3] for t in types ]
+        self.map = plt
+        # self.map = Basemap(resolution='i', projection='cyl', \
+        #     llcrnrlon=bot_left_lon, llcrnrlat=bot_left_lat, \
+        #     urcrnrlon=top_right_lon, urcrnrlat=top_right_lat)
+        # self.map.arcgisimage(service='World_Street_Map', xpixels = 1000, ypixels=1000, verbose= False)
+        palette = ['#efefef', '#5289c2', '#f99625', '#f52828', 'y','b', 'r', '#000000']
+        colors = [ palette[t] for t in types ]
         self.map.scatter(lon, lat, color=colors, s=2)
         self.ui.canvas.draw()
 

@@ -169,7 +169,7 @@ class Model:
             # Create successors' list
             self.model.controller.showLoading("Création de la liste des successeurs")
             cursor = db.cursor()
-            cursor.execute("SELECT from_stop_id, to_stop_id, departure_time, travel_time FROM timetable ORDER BY from_stop_id, to_stop_id, departure_time, travel_time")
+            cursor.execute("SELECT from_stop_id, to_stop_id, departure_time, travel_time, route_type FROM timetable ORDER BY from_stop_id, to_stop_id, departure_time, travel_time")
 
             memo = Memo(2)
             localStorage = LmdbDataStore('%s/succ' % self.path, dict())
@@ -178,17 +178,22 @@ class Model:
                 memo.put(connection)
                 if memo.is_ready():
                     connection1, connection2 = memo.get()
-                    from_stop_id, to_stop_id, departure_time, travel_time = connection1
-                    from_stop_id_next, _, _, _ = connection2
+                    from_stop_id, to_stop_id, departure_time, travel_time, route_type = connection1
+                    from_stop_id_next, _, _, _, _ = connection2
                     
                     if to_stop_id not in successors: successors[to_stop_id] = []
-                    successors[to_stop_id].append( (departure_time, travel_time) )
+                    successors[to_stop_id].append( (departure_time, travel_time, route_type) )
 
                     if from_stop_id != from_stop_id_next:
                         localStorage.set(from_stop_id, successors)
                         successors = {}
 
             localStorage.txn.commit()
+        def getPossibleModes(self):
+            db = sqlite3.connect(self.path + 'gtfs.db')
+            cursor = db.cursor()
+            cursor.execute('SELECT DISTINCT route_type FROM timetable WHERE route_type != -1')
+            return [ mode for mode, in cursor ]
         def getAllStops(self, modes):
             names, ids, lats, lons, types = [], [], [], [], []
             if modes == []: return names, ids, lats, lons, types
@@ -217,8 +222,9 @@ class Model:
                 rnames.append(route_name)
                 rcols.append(route_color)
             return names, ids, lats, lons, types, rnames, rcols
-        def getFunctionSuccessorsByStopId(self, withTimes = True):
+        def getFunctionSuccessorsByStopId(self, modes, withTimes = True):
             localStorage = LmdbDataStore('%s/succ' % self.path, dict())
+            modes += [-1]
             
             if withTimes:
                 def minValueFromStartTime(expanded, arrival_time):
@@ -226,19 +232,21 @@ class Model:
                     stop_id, valuations = expanded
                     minimum = float('inf')
                     argmin = None
-                    for departure_time, travel_time in valuations:
-                        if departure_time == -1: # C'est un transfer
-                            minimum = arrival_time + travel_time
-                        elif departure_time >= arrival_time and departure_time + travel_time < minimum:
-                            minimum = departure_time + travel_time
+                    for departure_time, travel_time, route_type in valuations:
+                        if route_type in modes:
+                            if departure_time == -1: # C'est un transfer
+                                minimum = arrival_time + travel_time
+                            elif departure_time >= arrival_time and departure_time + travel_time < minimum:
+                                minimum = departure_time + travel_time
                     return travel_time, stop_id, minimum
             else:
                 def minValueFromStartTime(expanded, arrival_time):
                     stop_id, valuations = expanded
                     minimum = float('inf')
                     argmin = None
-                    for departure_time, travel_time in valuations:
-                        if travel_time < minimum: minimum = travel_time
+                    for departure_time, travel_time, route_type in valuations:
+                        if route_type in modes:
+                            if travel_time < minimum: minimum = travel_time
                     return minimum, stop_id, 0
 
             def voisins(stop_id, arrival_time):
@@ -269,7 +277,7 @@ class Model:
 
     def dijkstra(self, from_stop_id, departure_time_string, to_stop_id, modes):
         departure_time = 0 if departure_time_string == "" else minutes(departure_time_string)
-        voisins = self.workspace.getFunctionSuccessorsByStopId(not not departure_time)
+        voisins = self.workspace.getFunctionSuccessorsByStopId(modes, not not departure_time)
 
         M = set()
         d = { from_stop_id: 0 }
@@ -294,12 +302,15 @@ class Model:
                     p[next_stop] = curr_stop
                     t[next_stop] = next_departure_time
 
-        stop_ids = [to_stop_id]
-        stop_times = [t[to_stop_id]]
-        x = to_stop_id
-        while x != from_stop_id:
-            x = p[x]
-            stop_ids.insert(0, x)
-            stop_times.insert(0, t[x])
+        try:
+            stop_ids = [to_stop_id]
+            stop_times = [t[to_stop_id]]
+            x = to_stop_id
+            while x != from_stop_id:
+                x = p[x]
+                stop_ids.insert(0, x)
+                stop_times.insert(0, t[x])
+        except:
+            return self.controller.showError("Les deux noeuds ne sont pas connexe")
 
         return stop_ids, stop_times

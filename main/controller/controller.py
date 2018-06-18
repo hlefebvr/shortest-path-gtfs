@@ -10,6 +10,7 @@ class App(QApplication):
         QApplication.__init__(self, argv)
         self.view = View(self)
         self.model = Model(self)
+        self.view.disableModes(self.model.workspace.getPossibleModes())
         self.reloadStops()
         self.exec_()
 
@@ -18,9 +19,10 @@ class App(QApplication):
     def askInitWorkspace(self): return self.view.askInitWorkspace()
     def askInitWorkspaceParameters(self, lat, lon, r): return self.view.askInitWorkspaceParameters(lat, lon, r)
     def showLoading(self, txt): return self.view.showLoading(txt)
+    def showError(self, txt): return self.view.showError(txt)
 
     # FROM VIEW TO MODEL
-    def reloadStops(self, modes = [1, 3]):
+    def reloadStops(self, modes = [0, 1, 2, 3, 4, 5, 6, 7]):
         names, ids, lats, lons, types = self.model.workspace.getAllStops(modes)
         self.view.drawStops(lats, lons, types)
         self.view.fillStopSelectors(ids, names)
@@ -33,4 +35,5 @@ class App(QApplication):
         self.drawStopPath(stop_ids, stop_times)
     def changeWorkspace(self, default, confirm = False):
         self.model.changeWorkspace('~', confirm)
+        self.view.disableModes(self.model.workspace.getPossibleModes())
         self.reloadStops()
