@@ -46,7 +46,7 @@ class Model:
             for file in files:
                 if not os.path.exists(self.path + file): return False
             return True
-        def canBeUsedAsGTFS(self): return self.containsFiles(['routes.txt', 'trips.txt', 'stop_times.txt', 'stops.txt', 'transfers.txt'])
+        def canBeUsedAsGTFS(self): return self.containsFiles(['routes.txt', 'trips.txt', 'stop_times.txt', 'stops.txt'])
         def isReady(self): return self.containsFiles(['gtfs.db', 'succ'])
         def create(self, lat, lon, r):
             self.model.controller.showLoading("Création de la base de données")
@@ -56,11 +56,14 @@ class Model:
             
             # Create all used GTFS tables
             for tableName in getCreateTableOrder():
-                with open('%s%s.txt' % (self.path, tableName), 'r', encoding = 'utf8') as f:
-                    csvReader = csv.reader(f)
-                    header = next(csvReader)
-                    fieldStatements = [ '%s %s' % (field, getFieldType(tableName, field)) for field in header ]
-                    db.execute('CREATE TABLE %s (%s);' % (tableName, ', '.join(fieldStatements + [getKStatement(tableName)])))
+                if tableName == 'transfers' and not self.containsFiles(['transfers.txt']):
+                    header = ['from_stop_id','to_stop_id','transfer_type','min_transfer_time']
+                else:
+                    with open('%s%s.txt' % (self.path, tableName), 'r', encoding = 'utf8') as f:
+                        csvReader = csv.reader(f)
+                        header = next(csvReader)
+                fieldStatements = [ '%s %s' % (field, getFieldType(tableName, field)) for field in header ]
+                db.execute('CREATE TABLE %s (%s);' % (tableName, ', '.join(fieldStatements + [getKStatement(tableName)])))
             
             db.commit()
 
@@ -107,7 +110,7 @@ class Model:
             insertCSV('routes')
             insertCSV('trips')
             insertCSV('stop_times')
-            insertCSV('transfers')
+            if self.containsFiles(['transfers']): insertCSV('transfers.txt')
 
             # Create assoc between stops and routes
             self.model.controller.showLoading("Association des stops et des routes")
