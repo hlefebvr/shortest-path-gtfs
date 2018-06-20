@@ -110,7 +110,7 @@ class Model:
             insertCSV('routes')
             insertCSV('trips')
             insertCSV('stop_times')
-            if self.containsFiles(['transfers']): insertCSV('transfers.txt')
+            if self.containsFiles(['transfers.txt']): insertCSV('transfers')
 
             # Create assoc between stops and routes
             self.model.controller.showLoading("Association des stops et des routes")
