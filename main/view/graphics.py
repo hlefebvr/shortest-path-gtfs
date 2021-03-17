@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from PyQt4.QtGui import QWidget, QVBoxLayout, QProgressBar, \
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QProgressBar, \
                         QHBoxLayout, QDialog, QLineEdit, QLabel, \
-                        QFont, QPushButton
-from PyQt4.QtCore import Qt, QCoreApplication
+                        QPushButton
+from PyQt5.QtGui import QFont
+from PyQt5.QtCore import Qt, QCoreApplication
 
 class ProgressWindow(QWidget):
     def __init__(self, maximum, txt):

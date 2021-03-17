@@ -23,7 +23,7 @@ class Model:
                 'lon': '2.3439',
                 'r': '5.63'
             }
-            self.path = os.path.dirname(os.path.realpath(__file__)) + '/config.txt'
+            self.path = os.path.dirname(os.path.realpath(__file__)) + '/../../config.txt'
             with open(self.path, 'r') as f:
                 for line in f:
                     try: key, value = line.split('=')

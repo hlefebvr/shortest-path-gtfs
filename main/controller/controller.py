@@ -3,7 +3,7 @@
 
 from model import Model
 from view import View
-from PyQt4.QtGui import QApplication
+from PyQt5.QtWidgets import QApplication
 
 class App(QApplication):
     def __init__(self, argv):

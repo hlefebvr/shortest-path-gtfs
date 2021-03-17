@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 # PyQt Graphical imports
-from PyQt4.QtGui import QMainWindow, QSplitter, QWidget, \
+from PyQt5.QtWidgets import QMainWindow, QSplitter, QWidget, \
                         QHBoxLayout, QVBoxLayout, QTableWidget, QCheckBox, \
                         QLabel, QComboBox, QPushButton, QHeaderView, \
                         QMessageBox, QFileDialog, QProgressBar, QTableWidgetItem, \
-                        QErrorMessage, QColor, QHeaderView, QAction
-from PyQt4.QtCore import Qt, QCoreApplication
+                        QErrorMessage, QHeaderView, QAction
+from PyQt5.QtGui import QColor
+from PyQt5.QtCore import Qt, QCoreApplication
 
 # MatPlotLib imports
 import matplotlib.pyplot as plt
