@@ -24,7 +24,7 @@ class Model:
                 'r': '5.63'
             }
             self.path = os.path.dirname(os.path.realpath(__file__)) + '/../../config.txt'
-            with open(self.path, 'r') as f:
+            with open(self.path, 'a+') as f:
                 for line in f:
                     try: key, value = line.split('=')
                     except: continue
