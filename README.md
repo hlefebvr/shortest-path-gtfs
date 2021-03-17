@@ -31,10 +31,10 @@ This project has been developed with
 |:--------:|:--------:|:--------------------------------------:|
 | python3  | 3.6.5    |                                        |
 | SQLite   | 2.6.0    | SQL file data storage for GTFS queries |
-| LMDB     | 0.86     | key-value storage for successor's list | 
-|MatPlotLib| 2.1.1    | 2D ploting library                     |
+| LMDB     | 1.1.1    | key-value storage for successor's list | 
+|MatPlotLib| 3.3.4    | 2D ploting library                     |
 | Qt       | 4.8.7    | GUI module                             |
-| PyQt     | 4.12.1   | Qt python adapter                      |
+| PyQt     | 5.15.4   | Qt python adapter                      |
 
 ## GTFS data sets
 
